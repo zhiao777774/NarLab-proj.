@@ -1,0 +1,43 @@
+.popBox {
+    max-width: 70vw !important;
+    max-height: 90vh;
+    height: 350px;
+    align-items: center;    
+    padding: 7px;
+    
+    background-color: #FFF;        
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    
+}
+
+.popBoxImg {
+    width: 350px;
+}
+
+.barChart {
+    width: 400px;
+}
+
+
+.myInfo {
+    max-width: 45vw;
+    padding: 20px;
+    /* height: 60vh; */
+    max-height: 1800px;    
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    background-color: #FFF;    
+    position:absolute; 
+    top:15%;
+    left:50%;
+    text-align: left;
+}
+
+.desp {
+    text-align: left;
+    background-color: #FFF;
+    padding: 5px;
+    height: 50vh;
+    overflow-y: scroll;
+    white-space: pre-line;
+}
+
