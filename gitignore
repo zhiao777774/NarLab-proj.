@@ -1,3 +1,7 @@
+# misc
+.idea
+.DS_Store
+
 # sensitive data
 data
 data2
