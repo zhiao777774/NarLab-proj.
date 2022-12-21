@@ -11,3 +11,15 @@ html {
 ._9w8d5 {
   display:none;
 }
+
+.react-datepicker__year-wrapper {
+  max-width: 160px !important;
+}
+
+.react-datepicker__year .react-datepicker__year-text {
+  width: 3rem !important;
+}
+
+.react-datepicker__navigation-icon {
+  top: 5px !important;
+}
