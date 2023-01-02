@@ -21,11 +21,11 @@ if __name__ == "__main__":
     ws = WS(str(DATA_PATH))
     
     # 讀取資料
-    df = pd.read_csv(DATA_PATH / "data_ver2.csv")
+    df = pd.read_csv(DATA_PATH / "data.csv")
     df = df[["year", "name", "label", "description"]]
     
     # 取出斷詞關鍵字
-    keysfile = DATA_PATH / "keys_new3.txt"
+    keysfile = DATA_PATH / "keys.txt"
     with open(keysfile) as file:
         lines = file.read().splitlines() 
 
