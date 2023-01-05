@@ -13,12 +13,12 @@ export default class GanttChart extends Component {
     renderChart(tasks = this.props.tasks, init) {
         const {startYear, endYear, clickEvent, projects, TooltipContent} = this.props;
 
-        gantt.plugins({
-            tooltip: true
-        });
-        gantt.templates.tooltip_text = function (start, end, task) {
-            return '<TooltipContent task={task} />';
-        }
+        // gantt.plugins({
+        //     tooltip: true
+        // });
+        // gantt.templates.tooltip_text = function (start, end, task) {
+        //     return '<TooltipContent task={task} />';
+        // }
 
         gantt.attachEvent('onTemplatesReady', () => {
             // 顯示年份在標題
