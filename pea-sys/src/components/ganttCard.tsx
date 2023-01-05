@@ -6,7 +6,7 @@ import {Gantt, Task, ViewMode} from 'gantt-task-react';
 import MultiSelect from 'multiselect-react-dropdown';
 import DatePicker, {registerLocale} from "react-datepicker";
 import Chart from "react-apexcharts";
-import {loadData} from '../helpers/dataLoader';
+import {loadData, loadDataDhtmlxFormatted} from '../helpers/dataLoader';
 import {CategoryContext} from "../helpers/CategoryContext"
 import '../App.css';
 import 'gantt-task-react/dist/index.css';
@@ -15,12 +15,14 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 
 import tw from 'date-fns/locale/zh-TW';
+import GanttChart from "./ganttChart";
 
 registerLocale('zh-TW', tw);
 
 export const GanttCard = () => {
     // 讀取在背景的資料
-    const [allTasks, setAllTasks] = useState<Task[]>(loadData());
+    const [allTasks, setAllTasks] = useState<any[]>(loadDataDhtmlxFormatted());
+    const projectTasks = allTasks.filter((t) => t.type === 'project');
 
     // 顯示的資料
     const [displayTasks, setDisplayTasks] = useState<Task[]>([]);
@@ -53,7 +55,7 @@ export const GanttCard = () => {
     const [ganttColumnWidth, setGanttColumnWidth] = useState<number>(10);
 
     const minDataYear = 2014;
-    const maxDataYear = 2025;
+    const maxDataYear = new Date().getFullYear() + 3;
     const [viewDate, setViewDate] = useState<any>({
         start: new Date(minDataYear, 0),
         end: new Date(maxDataYear, 0)
@@ -136,14 +138,6 @@ export const GanttCard = () => {
 
     useEffect(() => {
         let searchTasks: Task[] = getDepartmentTasks();
-        // for (let p = 0; p < collapsedProj.length; ++p) {
-        //     searchTasks = searchTasks.map((t) => {
-        //         return {
-        //             ...t,
-        //             hide: t.project === collapsedProj[p].id
-        //         };
-        //     });
-        // }
         setDisplayTasks(searchTasks);
     }, [selectedDepartments]);
 
@@ -155,45 +149,36 @@ export const GanttCard = () => {
             Array.prototype.push.apply(diplayed, temp);
         }
         setDisplayTasks(diplayed);
-        // if (displayTasks.length > 0) {
-        //     let displayed = displayTasks.map((t) => {
-        //         return {
-        //             ...t,
-        //             hide: false
-        //         }
-        //     });
-        //
-        //     for (let p = 0; p < collapsedProj.length; ++p) {
-        //         displayed = displayed.map((t) => {
-        //             return {
-        //                 ...t,
-        //                 hide: t.project === collapsedProj[p].id
-        //             };
-        //         });
-        //     }
-        //     setDisplayTasks(displayed);
-        // }
 
     }, [collapsedProj, getProjects, getTasks]);
 
 
-    const handleExpanderClick = (task: Task) => {
-        if (task.type === "project") {
-            if (collapsedProj.filter(ep => ep.id === task.id).length > 0) {
+    const handleExpanderClick = (task: Task | String) => {
+        let target: Task;
+        if (typeof task === 'string') {
+            target = allTasks.filter((t) => t.id === task)[0];
+        } else {
+            // @ts-ignore
+            target = task;
+        }
+
+        if (target.type === "project") {
+            console.log(target.id)
+            if (collapsedProj.filter(ep => ep.id === target.id).length > 0) {
                 const tempid = collapsedProj.map(e => e.id);
                 const temp = [...collapsedProj]
-                let rmProjIndex = tempid.indexOf(task.id);
+                let rmProjIndex = tempid.indexOf(target.id);
                 temp.splice(rmProjIndex, 1);
                 setCollapsedProj(temp);
             } else {
-                if (!collapsedProj.includes(task)) {
+                if (!collapsedProj.includes(target)) {
                     const temp = [...collapsedProj];
-                    temp.push(task);
+                    temp.push(target);
                     setCollapsedProj(temp);
                 }
             }
         }
-        setCurTask(task);
+        setCurTask(target);
     };
 
     const changeCategory = (event: any) => {
@@ -201,7 +186,7 @@ export const GanttCard = () => {
         setCollapsedProj([]);
         setCategoryNum(event.target.value);
         setSelectedDepartments([]);
-        setAllTasks(loadData(event.target.value));
+        setAllTasks(loadDataDhtmlxFormatted(event.target.value));
     }
 
     const changeDepartments = (selectedList: any) => {
@@ -346,8 +331,8 @@ export const GanttCard = () => {
 
     console.log(displayTasks);
 
-    const startDate = new Date(viewDate.start).getFullYear();
-    const endDate = new Date(viewDate.end || new Date(2025, 0)).getFullYear();
+    const startYear = new Date(viewDate.start).getFullYear();
+    const endYear = new Date(viewDate.end || new Date(maxDataYear, 0)).getFullYear();
 
     return (
         <CategoryContext.Provider value={categoryNum}>
@@ -419,7 +404,7 @@ export const GanttCard = () => {
                                                                                 borderBottomRightRadius: 0
                                                                             }}
                                                                     >
-                                                                        {`${startDate}${(endDate && ' ~ ')}${endDate}`}
+                                                                        {`${startYear}${(endYear && ' ~ ')}${endYear}`}
                                                                     </button>
                                                                 }
                                                     />
@@ -518,34 +503,71 @@ export const GanttCard = () => {
                                 </div> : null
                             }
                             {mode === "Gantt" ?
-                                <div className="p-auto" style={{width: "auto", minWidth: "100eh", maxWidth: "1350px"}}>
+                                <div className="p-auto" style={{width: "auto", minWidth: "100vh", maxWidth: "1350px"}}>
                                     {
-                                        (displayTasks.length === 0 ? "empty" : <Gantt // TODO: Gantt
-                                            tasks={displayTasks.filter((t) => {
-                                                return t.type === 'project' ||
-                                                    (
-                                                        t.start >= new Date(viewDate.start.getFullYear() - 1911, 0)
-                                                    )
-                                            }).map((t) => {
-                                                if (t.type === 'project') {
-                                                    const {start, end, ...data} = t;
-                                                    return {
-                                                        ...data,
-                                                        start: new Date(viewDate.start.getFullYear() - 1911, 0),
-                                                        end: new Date(endDate - 1911, 0)
-                                                    }
-                                                }
-                                                return t;
-                                            })}
-                                            viewMode={ViewMode.Month}
-                                            columnWidth={ganttColumnWidth}
-                                            handleWidth={40}
-                                            listCellWidth=""
-                                            TooltipContent={MyToolTipContent}
-                                            onDoubleClick={handleExpanderClick}
-                                            ganttHeight={550}
-                                        />)
-                                        //(displayTasks.length === 0 ? "empty" : <GanttChart tasks={displayTasks} />)
+                                        (displayTasks.length === 0 ? "empty" :
+                                                <GanttChart
+                                                    tasks={displayTasks.filter((t) => {
+                                                        return t.type === 'project' ||
+                                                            (
+                                                                t.start >= new Date(viewDate.start.getFullYear(), 0)
+                                                            )
+                                                    }).map((t) => {
+                                                        if (t.type === 'project') {
+                                                            const {start, end, ...data} = t;
+                                                            return {
+                                                                ...data,
+                                                                start,
+                                                                end,
+                                                                start_date: `${viewDate.start.getFullYear()}-1-1`,
+                                                                duration: new Date(viewDate.start.getFullYear(), 0)
+                                                                    // @ts-ignore
+                                                                    .diffYear(new Date(endYear, 0))
+                                                            }
+                                                        } else {
+                                                            const {start, end, ...data} = t;
+                                                            return {
+                                                                ...data,
+                                                                start,
+                                                                end,
+                                                                start_date: `${start.getFullYear()}-1-1`,
+                                                                // @ts-ignore
+                                                                duration: start.diffYear(end)
+                                                            }
+                                                        }
+                                                    })}
+                                                    projects={projectTasks}
+                                                    startYear={startYear}
+                                                    endYear={endYear + 1}
+                                                    TooltipContent={MyToolTipContent}
+                                                    clickEvent={handleExpanderClick}
+                                                />
+                                            // <Gantt
+                                            //     tasks={displayTasks.filter((t) => {
+                                            //         return t.type === 'project' ||
+                                            //             (
+                                            //                 t.start >= new Date(viewDate.start.getFullYear() - 1911, 0)
+                                            //             )
+                                            //     }).map((t) => {
+                                            //         if (t.type === 'project') {
+                                            //             const {start, end, ...data} = t;
+                                            //             return {
+                                            //                 ...data,
+                                            //                 start: new Date(viewDate.start.getFullYear() - 1911, 0),
+                                            //                 end: new Date(endYear - 1911, 0)
+                                            //             }
+                                            //         }
+                                            //         return t;
+                                            //     })}
+                                            //     viewMode={ViewMode.Month}
+                                            //     columnWidth={ganttColumnWidth}
+                                            //     handleWidth={40}
+                                            //     listCellWidth=""
+                                            //     TooltipContent={MyToolTipContent}
+                                            //     onDoubleClick={handleExpanderClick}
+                                            //     ganttHeight={550}
+                                            // />
+                                        )
                                     }
                                 </div> : null
                             }
