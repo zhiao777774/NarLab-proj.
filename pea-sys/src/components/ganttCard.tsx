@@ -1,19 +1,16 @@
 import {useCallback, useEffect, useState} from 'react';
-import {Card, Row, Col, Form, InputGroup, FormControl, Button} from 'react-bootstrap';
-import {MyToolTipContent} from './myTooltip';
+import {Card, Row, Col, InputGroup, FormControl, Button} from 'react-bootstrap';
 import {MyInfo} from './myInfo';
-import {Gantt, Task, ViewMode} from 'gantt-task-react';
+import {Task} from 'gantt-task-react';
 import MultiSelect from 'multiselect-react-dropdown';
-import DatePicker, {registerLocale} from "react-datepicker";
+import DatePicker, {registerLocale} from 'react-datepicker';
 import Chart from "react-apexcharts";
-import {loadData, loadDataDhtmlxFormatted} from '../helpers/dataLoader';
-import {CategoryContext} from "../helpers/CategoryContext"
+import {loadData} from '../helpers/dataLoader';
+import {CategoryContext} from '../helpers/CategoryContext';
 import '../App.css';
 import 'gantt-task-react/dist/index.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
-
 import tw from 'date-fns/locale/zh-TW';
 import GanttChart from "./ganttChart";
 
@@ -21,7 +18,7 @@ registerLocale('zh-TW', tw);
 
 export const GanttCard = () => {
     // 讀取在背景的資料
-    const [allTasks, setAllTasks] = useState<any[]>(loadDataDhtmlxFormatted());
+    const [allTasks, setAllTasks] = useState<any[]>(loadData());
     const projectTasks = allTasks.filter((t) => t.type === 'project');
 
     // 顯示的資料
@@ -56,11 +53,10 @@ export const GanttCard = () => {
 
     const minDataYear = 2014;
     const maxDataYear = new Date().getFullYear() + 3;
-    const [viewDate, setViewDate] = useState<any>({
+    const [displayedDate, setDisplayedDate] = useState<any>({
         start: new Date(minDataYear, 0),
         end: new Date(maxDataYear, 0)
     });
-
 
     // 只有在更換category的狀況下，allTasks才會變動。當allTask變動時，從新設定顯示的tasks
     const getProjects = useCallback(() => {
@@ -83,7 +79,8 @@ export const GanttCard = () => {
             id.push(temp.name)
             allCount.push({
                 name: String(temp.name),
-                data: temp.data.series
+                data: //temp.data.series
+                    [12, 13, 17, 18, 16, 21, 22, 21]
             })
         }
         id.sort(function (a, b) {
@@ -162,22 +159,21 @@ export const GanttCard = () => {
             target = task;
         }
 
-        if (target.type === "project") {
-            console.log(target.id)
-            if (collapsedProj.filter(ep => ep.id === target.id).length > 0) {
-                const tempid = collapsedProj.map(e => e.id);
-                const temp = [...collapsedProj]
-                let rmProjIndex = tempid.indexOf(target.id);
-                temp.splice(rmProjIndex, 1);
-                setCollapsedProj(temp);
-            } else {
-                if (!collapsedProj.includes(target)) {
-                    const temp = [...collapsedProj];
-                    temp.push(target);
-                    setCollapsedProj(temp);
-                }
-            }
-        }
+        // if (target.type === "project") {
+        //     if (collapsedProj.filter(ep => ep.id === target.id).length > 0) {
+        //         const tempid = collapsedProj.map(e => e.id);
+        //         const temp = [...collapsedProj]
+        //         let rmProjIndex = tempid.indexOf(target.id);
+        //         temp.splice(rmProjIndex, 1);
+        //         setCollapsedProj(temp);
+        //     } else {
+        //         if (!collapsedProj.includes(target)) {
+        //             const temp = [...collapsedProj];
+        //             temp.push(target);
+        //             setCollapsedProj(temp);
+        //         }
+        //     }
+        // }
         setCurTask(target);
     };
 
@@ -186,7 +182,7 @@ export const GanttCard = () => {
         setCollapsedProj([]);
         setCategoryNum(event.target.value);
         setSelectedDepartments([]);
-        setAllTasks(loadDataDhtmlxFormatted(event.target.value));
+        setAllTasks(loadData(event.target.value));
     }
 
     const changeDepartments = (selectedList: any) => {
@@ -323,16 +319,14 @@ export const GanttCard = () => {
         const [start, end] = dates;
         const isSame = isSameDay(new Date(start), new Date(end));
 
-        setViewDate({
+        setDisplayedDate({
             start,
             end: isSame ? new Date() : end
         });
     }
 
-    console.log(displayTasks);
-
-    const startYear = new Date(viewDate.start).getFullYear();
-    const endYear = new Date(viewDate.end || new Date(maxDataYear, 0)).getFullYear();
+    const startYear = new Date(displayedDate.start).getFullYear();
+    const endYear = new Date(displayedDate.end || new Date(maxDataYear, 0)).getFullYear();
 
     return (
         <CategoryContext.Provider value={categoryNum}>
@@ -341,18 +335,18 @@ export const GanttCard = () => {
                     <Card className="m-auto" style={{width: "auto", maxWidth: "1400px"}}>
                         <Row style={{margin: "20px 20px 10px"}} xs="auto">
                             {
-                                mode === "Gantt" || mode === "TS" ?
-                                    <Col>
-                                        <Form.Select aria-label="" style={{maxWidth: "200px", margin: "auto"}}
-                                                     onChange={changeCategory}>
-                                            <option value="10">10 Category</option>
-                                            <option value="20">20 Category</option>
-                                            <option value="30">30 Category</option>
-                                            <option value="40">40 Category</option>
-                                            <option value="50">50 Category</option>
-                                        </Form.Select>
-                                    </Col>
-                                    : null
+                                // mode === "Gantt" || mode === "TS" ?
+                                //     <Col>
+                                //         <Form.Select aria-label="" style={{maxWidth: "200px", margin: "auto"}}
+                                //                      onChange={changeCategory}>
+                                //             <option value="10">10 Category</option>
+                                //             <option value="20">20 Category</option>
+                                //             <option value="30">30 Category</option>
+                                //             <option value="40">40 Category</option>
+                                //             <option value="50">50 Category</option>
+                                //         </Form.Select>
+                                //     </Col>
+                                //     : null
                             }
                             <Col>
                                 {mode === "Gantt" ?
@@ -380,7 +374,7 @@ export const GanttCard = () => {
                         </Row>
                         {
                             mode === "Gantt" ?
-                                <Row style={{margin: "20px 10px 10px"}}>
+                                <Row style={{margin: "20px 20px 10px -3px"}}>
                                     {
                                         mode === 'Gantt' ?
                                             <Col>
@@ -389,14 +383,14 @@ export const GanttCard = () => {
                                                                 locale="zh-TW"
                                                                 showYearPicker={true}
                                                                 withPortal={false}
-                                                                selected={viewDate.start}
-                                                                startDate={viewDate.start}
-                                                                endDate={viewDate.end}
+                                                                selected={displayedDate.start}
+                                                                startDate={displayedDate.start}
+                                                                endDate={displayedDate.end}
                                                                 onChange={handleDateChange}
                                                                 minDate={new Date(minDataYear, 0)}
                                                                 maxDate={new Date(maxDataYear, 0)}
                                                                 yearItemNumber={9}
-                                                                wrapperClassName="datePicker"
+                                                                shouldCloseOnSelect={false}
                                                                 customInput={
                                                                     <button className="btn btn-outline-dark"
                                                                             style={{
@@ -404,12 +398,12 @@ export const GanttCard = () => {
                                                                                 borderBottomRightRadius: 0
                                                                             }}
                                                                     >
-                                                                        {`${startYear}${(endYear && ' ~ ')}${endYear}`}
+                                                                        {`${startYear - 1911} - ${endYear - 1911}`}
                                                                     </button>
                                                                 }
                                                     />
                                                 </div>
-                                                <Button variant="dark" onClick={() => setViewDate({
+                                                <Button variant="dark" onClick={() => setDisplayedDate({
                                                     start: new Date(minDataYear, 0),
                                                     end: new Date(maxDataYear, 0)
                                                 })}
@@ -440,7 +434,6 @@ export const GanttCard = () => {
                                     <Col xs={5}>
                                         {mode === "Gantt" ?
                                             <InputGroup className="mb-3">
-
                                                 <FormControl
                                                     placeholder="Search"
                                                     aria-label="Search"
@@ -454,7 +447,6 @@ export const GanttCard = () => {
                                                 </Button>
                                                 <Button variant="dark" onClick={e => {
                                                     resetDisplayedTask();
-
                                                 }}>
                                                     Reset
                                                 </Button>
@@ -510,7 +502,7 @@ export const GanttCard = () => {
                                                     tasks={displayTasks.filter((t) => {
                                                         return t.type === 'project' ||
                                                             (
-                                                                t.start >= new Date(viewDate.start.getFullYear(), 0)
+                                                                t.start >= new Date(displayedDate.start.getFullYear(), 0)
                                                             )
                                                     }).map((t) => {
                                                         if (t.type === 'project') {
@@ -519,8 +511,8 @@ export const GanttCard = () => {
                                                                 ...data,
                                                                 start,
                                                                 end,
-                                                                start_date: `${viewDate.start.getFullYear()}-1-1`,
-                                                                duration: new Date(viewDate.start.getFullYear(), 0)
+                                                                start_date: `${displayedDate.start.getFullYear()}-1-1`,
+                                                                duration: new Date(displayedDate.start.getFullYear(), 0)
                                                                     // @ts-ignore
                                                                     .diffYear(new Date(endYear, 0))
                                                             }
@@ -539,21 +531,20 @@ export const GanttCard = () => {
                                                     projects={projectTasks}
                                                     startYear={startYear}
                                                     endYear={endYear + 1}
-                                                    TooltipContent={MyToolTipContent}
                                                     clickEvent={handleExpanderClick}
                                                 />
                                             // <Gantt
                                             //     tasks={displayTasks.filter((t) => {
                                             //         return t.type === 'project' ||
                                             //             (
-                                            //                 t.start >= new Date(viewDate.start.getFullYear() - 1911, 0)
+                                            //                 t.start >= new Date(displayedDate.start.getFullYear() - 1911, 0)
                                             //             )
                                             //     }).map((t) => {
                                             //         if (t.type === 'project') {
                                             //             const {start, end, ...data} = t;
                                             //             return {
                                             //                 ...data,
-                                            //                 start: new Date(viewDate.start.getFullYear() - 1911, 0),
+                                            //                 start: new Date(displayedDate.start.getFullYear() - 1911, 0),
                                             //                 end: new Date(endYear - 1911, 0)
                                             //             }
                                             //         }
