@@ -6,8 +6,6 @@ import {CategoryContext} from "../helpers/CategoryContext"
 
 export const MyToolTipContent: React.FC<{
     task: any;
-    // fontSize: string;
-    // fontFamily: string;
 }> = ({task}) => {
     const category = useContext(CategoryContext);
 
@@ -53,17 +51,11 @@ export const MyToolTipContent: React.FC<{
         return false;
     }
 
-
-    // var style = {
-    //     fontSize,
-    //     fontFamily,
-    // } as any;
-
     return (
-        <div style={{zIndex: 100}}>
+        <div style={{zIndex: 100, fontSize: 12}}>
             {
                 checkDataSeries(task) ?
-                    <Row className={styles.popBox} /*style={style}*/>
+                    <Row className={styles.popBox}>
                         <Col>
                             <Chart className={styles.barChart} type="bar" options={state.options}
                                    series={state.series}/>
