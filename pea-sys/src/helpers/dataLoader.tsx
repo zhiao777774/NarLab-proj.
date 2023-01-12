@@ -1,4 +1,3 @@
-import {Task} from 'gantt-task-react';
 import category from '../constants/category';
 import {numberRange} from "../utils/range";
 
@@ -16,13 +15,13 @@ const taskColor = '#2E4E78';
 export function loadData(catNum: string = '10') {
     const projectData = require(`../data/revised/dataset.json`);
     const catSeries = require(`../data/revised/category_statistic.json`);
-    const yearRange = numberRange(103, 110 ,true)
+    const yearRange = numberRange(103, 110, true)
 
     const tasks: object[] = [];
 
     for (let i = 0; i < category.length; ++i) {
         // @ts-ignore
-        const start = new Date(103, 0,1).toCE();
+        const start = new Date(103, 0, 1).toCE();
         // @ts-ignore
         const end = new Date(110, 0, 1).toCE();
 
@@ -30,7 +29,7 @@ export function loadData(catNum: string = '10') {
             start,
             start_date: `${start.getFullYear()}-1-1`,
             end,
-            duration:end.diffYear(start),
+            duration: end.diffYear(start),
             name: category[i],
             text: category[i],
             id: `main_${i}`,
@@ -76,76 +75,6 @@ export function loadData(catNum: string = '10') {
                 //"tf_idf": proj.tf_idf,
                 "desp": proj.description,
                 "department": proj.department,
-            }
-        };
-
-        tasks.push(temp);
-    }
-    return tasks;
-}
-
-export function loadDataDhtmlxFormatted(catNum: string = '10', prefixStr = "revise_length_") {
-    const availableCatNumbers = ['10', '20', '30', '40', '50']
-    if (availableCatNumbers.includes(catNum)) {
-        var data = require(`../data/main_${prefixStr}${catNum}.json`);
-        var proj_data = require(`../data/proj_${prefixStr}${catNum}.json`);
-    } else {
-        alert("Data not available...")
-        return []
-    }
-
-    const tasks: object[] = [];
-
-    for (let i = 0; i < data.length; ++i) {
-        // @ts-ignore
-        const start = new Date(data[i].start, 0,1).toCE();
-        // @ts-ignore
-        const end = new Date(data[i].end + 4, 0, 1).toCE();
-
-        const temp = {
-            start,
-            start_date: `${start.getFullYear()}-1-1`,
-            end,
-            duration:end.diffYear(start),
-            name: data[i].name,
-            text: data[i].name,
-            id: data[i].id,
-            level: 1,
-            type: "project",
-            progress: 1,
-            color: projectColor, //color_list[i % color_list.length],
-            data: data[i]
-        };
-
-        tasks.push(temp);
-    }
-
-    for (let i = 0; i < proj_data.length; ++i) {
-        // @ts-ignore
-        const start = new Date(proj_data[i].start, 0, 1).toCE();
-        // @ts-ignore
-        const end = new Date(proj_data[i].end, 0, 1).toCE();
-
-        const temp = {
-            start,
-            start_date: `${start.getFullYear()}-1-1`,
-            end,
-            duration: end.diffYear(start),
-            name: proj_data[i].name,
-            text: proj_data[i].name,
-            id: proj_data[i].id,
-            level: 2,
-            type: "task",
-            project: proj_data[i].project,
-            parent: proj_data[i].project,
-            progress: 1,
-            color: taskColor,
-            data: {
-                "keyword": proj_data[i].keyword,
-                "ner": proj_data[i].ner,
-                "tf_idf": proj_data[i].tf_idf,
-                "desp": proj_data[i].desp,
-                "department": proj_data[i].department,
             }
         };
 
