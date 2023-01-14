@@ -1,18 +1,17 @@
 import {useCallback, useEffect, useState} from 'react';
 import {Card, Row, Col, InputGroup, FormControl, Button} from 'react-bootstrap';
-import {MyInfo} from './myInfo';
-import {Task} from 'gantt-task-react';
 import MultiSelect from 'multiselect-react-dropdown';
 import DatePicker, {registerLocale} from 'react-datepicker';
-import Chart from "react-apexcharts";
+import Chart from 'react-apexcharts';
+import {MyInfo} from './myInfo';
+import GanttChart from './ganttChart';
 import {loadData} from '../helpers/dataLoader';
 import {CategoryContext} from '../helpers/CategoryContext';
-import '../App.css';
-import 'gantt-task-react/dist/index.css';
-import 'react-datepicker/dist/react-datepicker.css';
+import {Task} from '../constants/taskPropType';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'react-datepicker/dist/react-datepicker.css';
+import '../App.css';
 import tw from 'date-fns/locale/zh-TW';
-import GanttChart from "./ganttChart";
 
 registerLocale('zh-TW', tw);
 
@@ -46,10 +45,7 @@ export const GanttCard = () => {
 
     const [departments, setDepartments] = useState<string[]>([]);
     const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
-
     const [countData, setCountData] = useState<any>();
-    const [extendGantt, setExtendGantt] = useState<boolean>(true);
-    const [ganttColumnWidth, setGanttColumnWidth] = useState<number>(10);
 
     const minDataYear = 2014;
     const maxDataYear = new Date().getFullYear() + 3;
@@ -116,15 +112,6 @@ export const GanttCard = () => {
         _departments = _departments.sort();
         setDepartments(_departments);
     }, [allTasks])
-
-
-    useEffect(() => {
-        if (extendGantt) {
-            setGanttColumnWidth(10);
-        } else {
-            setGanttColumnWidth(25);
-        }
-    }, [extendGantt])
 
     useEffect(() => {
         setSearchString("");
@@ -349,12 +336,6 @@ export const GanttCard = () => {
                                 //     : null
                             }
                             <Col>
-                                {mode === "Gantt" ?
-                                    <Button variant="warning" onClick={() => setExtendGantt(!extendGantt)}
-                                            style={{marginRight: "5px"}}>
-                                        Switch
-                                    </Button> : null
-                                }
                                 <Button variant="info" onClick={() => toggleGantt()}
                                         style={{color: "white", marginRight: "5px"}}
                                         disabled={mode === "Gantt"}>
@@ -464,7 +445,7 @@ export const GanttCard = () => {
                                         src={process.env.PUBLIC_URL + "/" + topicFig + ".html"}
                                         width={topicFigWidth}
                                         height={topicFigHeight}
-                                    ></iframe>
+                                    />
                                     <br/>
                                     <Button variant="outline-info" onClick={() => {
                                         setTopicFig(TopicHtmls[0])
@@ -578,14 +559,15 @@ export const GanttCard = () => {
                 </Col>
 
                 <span>
-              {
-                  (curTask != null && curTask.type === "task") ? <MyInfo
-                      task={curTask}
-                      setCurTask={setCurTask}
-                  /> : null
-              }
-          </span>
+                    {
+                        (curTask != null && curTask.type === "task") ?
+                            <MyInfo
+                                task={curTask}
+                                setCurTask={setCurTask}
+                            /> : null
+                    }
+                </span>
             </Row>
         </CategoryContext.Provider>
     )
-}
+};
