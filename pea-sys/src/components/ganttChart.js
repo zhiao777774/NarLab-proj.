@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {gantt} from 'dhtmlx-gantt';
+import {MyTooltip} from './myTooltip';
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
-import {MyToolTipContent} from './myTooltip';
 
 export default class GanttChart extends Component {
     constructor(props) {
@@ -9,6 +9,7 @@ export default class GanttChart extends Component {
 
         this.ganttContainer = null;
         this.activeID = null;
+        this.event = {};
         this.state = {
             display: false,
             tooltip: null
@@ -19,12 +20,14 @@ export default class GanttChart extends Component {
     renderChart(tasks = this.props.tasks, init) {
         const {startYear, endYear, clickEvent, projects} = this.props;
 
-        gantt.plugins({tooltip: true});
+        gantt.plugins({tooltip: false});
         gantt.templates.tooltip_text = function (start, end, task) {
             return `<div>${task.type === 'task' ? (task.start.toRepublicYear().getFullYear() + '年度:') : ''} ${task.name}</div>`;
         }
 
-        gantt.attachEvent('onTemplatesReady', () => {
+        if (!init) gantt.detachEvent(this.event.onMouseMove);
+
+        this.event.onTemplatesReady = gantt.attachEvent('onTemplatesReady', () => {
             // 顯示年份在標題
             gantt.templates.date_scale = function (date) {
                 const y = gantt.date.date_to_str('%Y')(date) - 1911;
@@ -34,9 +37,8 @@ export default class GanttChart extends Component {
             }
         });
 
-        gantt.attachEvent('onTaskClick', (id) => {
+        this.event.onTaskClick = gantt.attachEvent('onTaskClick', (id) => {
             if (id.startsWith('main_')) {
-                console.log(tasks);
                 const tmpTask = tasks.filter((t) => t.id === id)[0];
                 if (tmpTask.hasOwnProperty('isOpen')) {
                     if (tmpTask.isOpen) {
@@ -55,7 +57,7 @@ export default class GanttChart extends Component {
             return false;
         });
 
-        gantt.attachEvent('onMouseMove', (id, e) => {
+        this.event.onMouseMove = gantt.attachEvent('onMouseMove', (id, e) => {
             if (!id && this.activeID) {
                 this.activeID = null;
                 this.setState({
@@ -64,20 +66,42 @@ export default class GanttChart extends Component {
                 });
             }
 
-            if (id && !this.activeID && id.startsWith('main_') && e.target.className == 'gantt_task_content') {
+            if (id && !this.activeID && e.target.className === 'gantt_task_content') {
                 const task = gantt.getTask(id);
+                const showTask = !tasks.every(({type}) => type === 'project');
+                if (showTask && task.type === 'project') return false;
 
-                console.log(e)
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.pageX - e.offsetX;
+                const y = e.pageY - e.offsetY;
+                if (showTask) {
+                    const {offsetLeft} = e.target.offsetParent;
+
+                    if (e.x > window.innerWidth / 2)
+                        task.x = offsetLeft - rect.left + e.offsetX - 300;
+                    else
+                        task.x = offsetLeft + rect.left + e.offsetX - 100;
+                } else {
+                    if (e.x > window.innerWidth / 2)
+                        task.x = x - rect.left + (e.x - window.innerWidth / 2) - 130;
+                    else
+                        task.x = x + rect.left + (e.x - window.innerWidth / 4) - 90;
+                }
+
+                if (y > window.innerHeight / 2)
+                    task.y = y + rect.top - (window.innerHeight / 2) - 90;
+                else
+                    task.y = y - rect.top - 90;
+
 
                 this.activeID = id;
-
-                task.pageX = e.pageX;
-                task.pageY = e.pageY;
                 this.setState({
                     display: true,
                     tooltip: task
                 });
             }
+
+            return false;
         });
 
         gantt.config.start_date = new Date(startYear, 0);
@@ -95,9 +119,7 @@ export default class GanttChart extends Component {
 
         if (init) {
             gantt.init(this.ganttContainer);
-            gantt.parse({
-                data: tasks
-            });
+            gantt.parse({data: tasks});
         } else {
             gantt.clearAll();
 
@@ -105,7 +127,7 @@ export default class GanttChart extends Component {
             tasks.forEach((t) => {
                 if (t.parent) {
                     if (!prevProject || t.parent !== prevProject.id) {
-                        const parent = projects.filter((p) => p.id === t.parent)[0]
+                        const parent = projects.filter((p) => p.id === t.parent)[0];
                         gantt.addTask({
                             isOpen: true,
                             ...parent
@@ -125,8 +147,10 @@ export default class GanttChart extends Component {
         this.renderChart(this.props.tasks, true);
     }
 
-    componentDidUpdate() {
-        this.renderChart(this.props.tasks, false);
+    componentDidUpdate(prevProps, prevState) {
+        if (prevProps.tasks !== this.props.tasks) {
+            this.renderChart(this.props.tasks, false);
+        }
     }
 
     render() {
@@ -137,16 +161,16 @@ export default class GanttChart extends Component {
                     ref={(input) => {
                         this.ganttContainer = input
                     }}
-                    style={{width: '1330px', height: '600px'}}
+                    style={{width: '1330px', height: '620px', overflow: 'scroll'}}
                 />
                 {
                     display ?
                         <div style={{
-                            position: 'fixed',
-                            left: (tooltip.pageX) + 'px',
-                            top: (tooltip.pageY + 30) + 'px'
+                            position: 'absolute',
+                            left: tooltip.x + 'px',
+                            top: tooltip.y + 'px',
                         }}>
-                            <MyToolTipContent task={tooltip}/>
+                            <MyTooltip task={tooltip}/>
                         </div>
                         : null
                 }
