@@ -1,15 +1,17 @@
-import React, {useState, useEffect, useContext} from 'react';
-import styles from "./myComponents.module.css";
-import Chart from "react-apexcharts";
+import React, {useContext} from 'react';
 import {Row, Col} from 'react-bootstrap';
-import {CategoryContext} from "../helpers/CategoryContext"
+import Chart from 'react-apexcharts';
+import {CategoryContext} from '../helpers/CategoryContext';
+import styles from './myComponents.module.css';
 
 export const MyToolTipContent: React.FC<{
     task: any;
-}> = ({task}) => {
+    type: string
+}> = ({task, type = task.type}) => {
     const category = useContext(CategoryContext);
 
-    var temp: any = {
+    const isProject = (type === 'project');
+    const config: any = {
         options: {
             chart: {
                 id: task.id
@@ -23,52 +25,40 @@ export const MyToolTipContent: React.FC<{
                 }
             },
             xaxis: {
-                categories: task.data.years
+                categories: isProject ? task.data.years : task.data.category
             },
-            title: {text: '該類別各年份數量統計'}
+            title: {text: isProject ? '該類別各年份總計畫數量統計' : '計畫各類別機率（前五大）'}
         },
         series: [{
-            data: task.data.series
+            name: isProject ? '數量' : '機率',
+            data: isProject ? task.data.series : task.data.categoryProb
         }],
-    }
+    };
 
-    const [state, setState] = React.useState(temp)
-
-    function checkDataSeries(task: any) {
-        try {
-            if (task['data']['series']) {
-                temp.series[0].data = task.data.series
-                let catgories = []
-                for (let i = 0; i < temp.series[0].data.length; ++i) {
-                    catgories.push(String(i + 103));
-                }
-                temp.options.xaxis.categories = catgories;
-                return true;
-            }
-        } catch (e) {
-            return false;
-        }
-        return false;
-    }
+    const [state, setState] = React.useState(config);
 
     return (
         <div style={{zIndex: 100, fontSize: 12}}>
-            {
-                checkDataSeries(task) ?
-                    <Row className={styles.popBox}>
-                        <Col>
-                            <Chart className={styles.barChart} type="bar" options={state.options}
-                                   series={state.series}/>
-                        </Col>
+            <Row className={styles.popBox}>
+                <Col>
+                    {
+                        !isProject ? <p>{task.start.toRepublicYear().getFullYear()}年度: {task.name}</p> : null
+                    }
+                    <Chart className={styles.barChart} type="bar" options={state.options}
+                           series={state.series}/>
+                </Col>
+                {
+                    isProject ?
                         <Col>
                             <p className={styles.popBoxImg}>
                                 {task.name}
                             </p>
-                            <img className={styles.popBoxImg}
+                            <img className={styles.popBoxImg} alt='wordcloud'
                                  src={require('./wordcloud/category50/' + task.id.replace("main_", "") + '.png')}/>
                         </Col>
-                    </Row> : undefined
-            }
+                        : null
+                }
+            </Row>
         </div>
     );
 };
