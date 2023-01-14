@@ -4,7 +4,7 @@ import Chart from 'react-apexcharts';
 import {CategoryContext} from '../helpers/CategoryContext';
 import styles from './myComponents.module.css';
 
-export const MyToolTipContent: React.FC<{
+export const MyTooltip: React.FC<{
     task: any;
     type: string
 }> = ({task, type = task.type}) => {
@@ -39,7 +39,7 @@ export const MyToolTipContent: React.FC<{
 
     return (
         <div style={{zIndex: 100, fontSize: 12}}>
-            <Row className={styles.popBox}>
+            <Row className={styles.tooltipContainer}>
                 <Col>
                     {
                         !isProject ? <p>{task.start.toRepublicYear().getFullYear()}年度: {task.name}</p> : null
@@ -50,11 +50,11 @@ export const MyToolTipContent: React.FC<{
                 {
                     isProject ?
                         <Col>
-                            <p className={styles.popBoxImg}>
+                            <p className={styles.tooltipComponent}>
                                 {task.name}
                             </p>
-                            <img className={styles.popBoxImg} alt='wordcloud'
-                                 src={require('./wordcloud/category50/' + task.id.replace("main_", "") + '.png')}/>
+                            <img className={styles.tooltipComponent} alt='wordcloud'
+                                 src={require(`./wordcloud/category50/${task.id.replace('main_', '')}.png`)}/>
                         </Col>
                         : null
                 }

@@ -1,39 +1,38 @@
-.popBox {
+.tooltipContainer {
     max-width: 70vw !important;
     max-height: 90vh;
-    height: 350px;
-    align-items: center;    
-    padding: 7px;
-    
-    background-color: #FFF;        
+    height: 100%;
+    align-items: center;
+    padding: 16px 10px 10px;
+    background-color: #FFF;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-    
+    z-index: 100;
+    position: relative;
 }
 
-.popBoxImg {
+.tooltipComponent {
     width: 350px;
+    margin-bottom: 6px;
 }
 
 .barChart {
     width: 400px;
 }
 
-
-.myInfo {
+.infoPanelContainer {
     max-width: 45vw;
     padding: 20px;
-    /* height: 60vh; */
-    max-height: 1800px;    
+    max-height: 1800px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-    background-color: #FFF;    
-    position:absolute; 
-    top:15%;
-    left:50%;
+    background-color: #FFF;
+    position: absolute;
+    top: 10%;
+    left: 50%;
     text-align: left;
     z-index: 100;
 }
 
-.desp {
+.infoPanelDesp {
     text-align: left;
     background-color: #FFF;
     padding: 5px;

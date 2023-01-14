@@ -10,9 +10,9 @@ export const MyInfo: React.FC<{
 
     // https://stackoverflow.com/questions/35351706/how-to-render-a-multi-line-text-string-in-react
     return (
-        <Row className={styles.myInfo}>
+        <Row className={styles.infoPanelContainer}>
             <Row>
-                <CloseButton onClick={() => setCurTask(null)} />
+                <CloseButton onClick={() => setCurTask(null)}/>
             </Row>
             <Row style={{padding: '5px', textAlign: 'center', marginTop: '12px', marginBottom: '15px'}}>
                 <h4>{task.name}</h4>
@@ -21,7 +21,7 @@ export const MyInfo: React.FC<{
                 <h5>年度 </h5> <p>{task.start.toRepublicYear().getFullYear()}</p>
                 <h5>部會 </h5> <p>{task.data.department}</p>
                 <h5>計畫描述</h5>
-                <div className={styles.desp}>
+                <div className={styles.infoPanelDesp}>
                     <p>{task.data.desp}</p>
                 </div>
             </Col>
