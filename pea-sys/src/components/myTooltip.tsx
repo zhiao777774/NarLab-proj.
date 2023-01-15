@@ -1,7 +1,7 @@
 import React, {useContext} from 'react';
 import {Row, Col} from 'react-bootstrap';
 import Chart from 'react-apexcharts';
-import {CategoryContext} from '../helpers/CategoryContext';
+import {CategoryContext} from '../helpers/context';
 import styles from './myComponents.module.css';
 
 export const MyTooltip: React.FC<{
