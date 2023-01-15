@@ -1,9 +1,12 @@
 import React, {Component} from 'react';
 import {gantt} from 'dhtmlx-gantt';
 import {MyTooltip} from './myTooltip';
+import {SidebarCollapsedContext} from '../helpers/context';
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
 
 export default class GanttChart extends Component {
+    static contextType = SidebarCollapsedContext;
+
     constructor(props) {
         super(props);
 
@@ -74,18 +77,41 @@ export default class GanttChart extends Component {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = e.pageX - e.offsetX;
                 const y = e.pageY - e.offsetY;
-                if (showTask) {
-                    const {offsetLeft} = e.target.offsetParent;
+                const targetWidth = e.currentTarget.offsetWidth;
+                if (this.context) {
+                    if (showTask) {
+                        const {offsetLeft} = e.target.offsetParent;
 
-                    if (e.x > window.innerWidth / 2)
-                        task.x = offsetLeft - rect.left + e.offsetX - 300;
-                    else
-                        task.x = offsetLeft + rect.left + e.offsetX - 100;
+                        if (e.x > window.innerWidth / 2)
+                            task.x = offsetLeft - rect.left + e.offsetX - 220;
+                        else
+                            task.x = offsetLeft + rect.left + e.offsetX - 130;
+                    } else {
+                        if (e.x > window.innerWidth / 2)
+                            task.x = x - rect.left + (e.x - window.innerWidth / 2) - 200;
+                        else if (e.x > window.innerWidth / 3)
+                            task.x = x - rect.left + (e.x - window.innerWidth / 3) + 200;
+                        else
+                            task.x = x + rect.left + (e.x - window.innerWidth / 3) - 90;
+                    }
                 } else {
-                    if (e.x > window.innerWidth / 2)
-                        task.x = x - rect.left + (e.x - window.innerWidth / 2) - 130;
-                    else
-                        task.x = x + rect.left + (e.x - window.innerWidth / 4) - 90;
+                    if (showTask) {
+                        const {offsetLeft} = e.target.offsetParent;
+
+                        if (e.x > targetWidth / 2)
+                            task.x = offsetLeft - rect.left + e.offsetX - 150;
+                        else
+                            task.x = offsetLeft + rect.left + e.offsetX - 200;
+                    } else {
+                        if (e.offsetX > targetWidth * (2 / 3))
+                            task.x = x - rect.left + (e.offsetX - targetWidth * (2 / 3)) + 50;
+                        else if (e.offsetX > targetWidth * (1 / 3) && e.x > window.innerWidth / 2)
+                            task.x = x - rect.left + (e.offsetX - targetWidth * (2 / 3)) + 50;
+                        else if (e.offsetX > targetWidth * (1 / 3) && e.x <= window.innerWidth / 2)
+                            task.x = x + rect.left + (e.offsetX - targetWidth / 2) + 80;
+                        else
+                            task.x = x + rect.left + (e.offsetX - targetWidth / 3) - 100;
+                    }
                 }
 
                 if (y > window.innerHeight / 2)
