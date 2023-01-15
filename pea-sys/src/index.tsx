@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {BrowserRouter} from 'react-router-dom';
+import {BrowserRouter, HashRouter} from 'react-router-dom';
 import {ProSidebarProvider} from 'react-pro-sidebar';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -20,9 +20,9 @@ Date.prototype.toCE = toCE;
 ReactDOM.render(
     <React.StrictMode>
         <ProSidebarProvider>
-            <BrowserRouter>
+            <HashRouter>
                 <App/>
-            </BrowserRouter>
+            </HashRouter>
         </ProSidebarProvider>
     </React.StrictMode>,
     document.getElementById('root')
