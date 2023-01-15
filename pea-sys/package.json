@@ -1,8 +1,7 @@
 {
   "name": "pea-sys",
   "version": "0.1.0",
-  "//homepage": "./",
-  "homepage": "https://github.com/amodhakal/portfolio",
+  "homepage": "./",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.7.1",
