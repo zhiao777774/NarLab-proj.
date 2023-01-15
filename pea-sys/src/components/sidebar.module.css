@@ -1,0 +1,19 @@
+.sidebarItem {
+    padding-top: 5px;
+    padding-bottom: 5px;
+
+}
+
+.sidebarItem > a > span:nth-child(2) {
+    padding-left: 5px;
+}
+
+.sidebarItem > a:hover {
+    color: black;
+    border-radius: 2px;
+}
+
+.sidebarContainer > div {
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
