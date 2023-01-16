@@ -143,12 +143,11 @@ export default class GanttChart extends Component {
         gantt.config.duration_step = 4;
         gantt.config.row_height = 50;
 
+        gantt.clearAll();
         if (init) {
             gantt.init(this.ganttContainer);
             gantt.parse({data: tasks});
         } else {
-            gantt.clearAll();
-
             let prevProject = undefined;
             tasks.forEach((t) => {
                 if (t.parent) {
