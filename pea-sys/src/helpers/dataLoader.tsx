@@ -14,9 +14,10 @@ const PROJECT_COLOR = '#0A7373';
 const TASK_COLOR = '#2E4E78';
 
 export function loadData(catNum: string = '10'): Task[] {
-    const projectData = require(`../data/revised/dataset.json`);
-    const catSeries = require(`../data/revised/category_statistic.json`);
-    const catProb = require(`../data/revised/category_probability.json`);
+    const projectData = require('../data/revised/dataset.json');
+    const catSeries = require('../data/revised/category_statistic.json');
+    const catProb = require('../data/revised/category_probability.json');
+    const TfIdf = require('../data/revised/tfidf_revised.json');
 
     const tasks: Task[] = [];
     const yearRange = numberRange(103, 110, true);
@@ -74,6 +75,9 @@ export function loadData(catNum: string = '10'): Task[] {
             color: TASK_COLOR,
             data: {
                 keyword: proj.chineseKeyword,
+                tfidf: {
+                    ...TfIdf[proj.code].tfidf
+                },
                 desp: proj.description.replaceAll('_x000D_', '\n'),
                 department: proj.department,
                 category: catProb[proj.code]['predictCategoryTop5'].split(';'),
