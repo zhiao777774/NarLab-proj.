@@ -1,7 +1,6 @@
 .sidebarItem {
     padding-top: 5px;
     padding-bottom: 5px;
-
 }
 
 .sidebarItem > a > span:nth-child(2) {
@@ -13,6 +12,15 @@
     border-radius: 2px;
 }
 
+.sidebarItemExtra {
+    color: #fdbb21;
+}
+
+.sidebarItemExtra > a:hover {
+    color: #ec3333;
+    border-radius: 2px;
+}
+
 .sidebarContainer > div {
     border-top-right-radius: 15px;
     border-bottom-right-radius: 15px;
@@ -20,4 +28,14 @@
 
 .searchIcon:hover {
     color: #ffcd27;
+}
+
+.typography {
+    letter-spacing: 0.5px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-align: start;
+    font-size: 12px;
+    line-height: 18px;
 }
