@@ -80,8 +80,9 @@ export function loadData(catNum: string = '10'): Task[] {
                 },
                 desp: proj.description.replaceAll('_x000D_', '\n'),
                 department: proj.department,
-                category: catProb[proj.code]['predictCategoryTop5'].split(';'),
-                categoryProb: catProb[proj.code]['predictProbabilityTop5'].split(';')
+                // 目前只取前三高的類別與機率
+                category: catProb[proj.code]['predictCategoryTop5'].split(';').slice(0, 3),
+                categoryProb: catProb[proj.code]['predictProbabilityTop5'].split(';').slice(0, 3)
                     .map((prob: string) => Number(prob))
             }
         } as Task;

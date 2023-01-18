@@ -27,7 +27,7 @@ export const MyTooltip: React.FC<{
             xaxis: {
                 categories: isProject ? task.data.years : task.data.category
             },
-            title: {text: isProject ? '該類別各年份總計畫數量統計' : '計畫各類別機率（前五大）'}
+            title: {text: isProject ? '該類別各年份總計畫數量統計' : '計畫前幾大類別與機率'}
         },
         series: [{
             name: isProject ? '數量' : '機率',
