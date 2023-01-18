@@ -58,19 +58,26 @@ for i in range(3152):
     keywords.append(tmp)
 
 eng = re.compile(r'[0-9A-Za-z_&²/]+')
-num = re.compile(r'^\d+$')
+other = re.compile(r'^[0-9_&²/]+$')
 
 for i in range(3152):
     if type(data.iloc[i]['計畫重點描述']) == str:
         tmp = eng.findall(data.iloc[i]['計畫重點描述'].replace('_x000D_', '\n'))
-        number = []
+        others = []
+        final1 = []
+        final2 = []
 
         for t in tmp:
-            if re.match(num, t):
-                number.append(t)
-        
-        tmp = [x for x in tmp if x not in number]
-        eng_keywords.append(tmp)
+            if re.match(other, t):
+                others.append(t)
+
+        final1 = [x for x in tmp if x not in others]
+
+        for x in final1:
+            if x not in final2:
+                final2.append(x)
+
+        eng_keywords.append(final2)
 
 all = []
 
