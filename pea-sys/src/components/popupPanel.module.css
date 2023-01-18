@@ -1,0 +1,41 @@
+.modal {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.modal > .header {
+    width: 100%;
+    font-size: 22px;
+    text-align: center;
+    padding: 5px;
+}
+
+.modal > .content {
+    width: 100%;
+    padding: 15px 30px 20px;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.modal > .actions {
+    width: 100%;
+    padding: 10px 5px;
+    margin: auto;
+    text-align: center;
+}
+
+.modal > .actions > button {
+    margin-left: 10px;
+}
+
+.modal > .close {
+    cursor: pointer;
+    position: absolute;
+    display: block;
+    right: -12px;
+    top: -12px;
+}
+
+.modal > .close:hover {
+    color: #181818;
+}
