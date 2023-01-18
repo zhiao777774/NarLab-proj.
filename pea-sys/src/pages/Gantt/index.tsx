@@ -345,7 +345,7 @@ export default function Gantt() {
                                         selectedValues={selectedDepartments}
                                         onSelect={(selectedList) => changeDepartments(selectedList)}
                                         onRemove={(selectedList) => changeDepartments(selectedList)}
-                                        placeholder={selectedDepartments.length ? "選擇更多部會" : "未設定部會"}
+                                        placeholder={selectedDepartments.length ? "選擇更多部會" : "未選擇部會"}
                                     />
                                 </Col>
                                 <Col xs={5}>
