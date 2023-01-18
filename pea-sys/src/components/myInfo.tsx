@@ -39,8 +39,8 @@ export const MyInfo: React.FC<{
                                     </Alert.Heading>
                                     <hr/>
                                     <div className="mb-0 text-black overflow-auto" style={{maxHeight: '200px'}}>
-                                        {task.data.keyword.split(/[;,，、]/).map((kw: string) =>
-                                            <div
+                                        {task.data.keyword.split(/[;,，、]/).map((kw: string, i: number) =>
+                                            <div key={`${task.code}_keyword_${i}`}
                                                 className="d-inline-block rounded-2 bg-warning bg-opacity-50 py-1 px-2 m-2">{kw}</div>
                                         )}
                                     </div>
@@ -55,14 +55,14 @@ export const MyInfo: React.FC<{
                             <hr/>
                             <div className="mb-0 text-black overflow-auto" style={{maxHeight: '200px'}}>
                                 {
-                                    Array.from(new Set<string>(task.data.tfidf.CH)).map((tfidf: string) =>
-                                        <div
+                                    task.data.tfidf.CH.map((tfidf: string, i: number) =>
+                                        <div key={`${task.code}_tfidf_ch${i}`}
                                             className="d-inline-block rounded-2 bg-info bg-opacity-50 py-1 px-2 m-2">{tfidf}</div>
                                     )
                                 }
                                 {
-                                    Array.from(new Set<string>(task.data.tfidf.EN)).map((tfidf: string) =>
-                                        <div
+                                    task.data.tfidf.EN.map((tfidf: string, i: number) =>
+                                        <div key={`${task.code}_tfidf_en${i}`}
                                             className="d-inline-block rounded-2 bg-success bg-opacity-50 py-1 px-2 m-2">{tfidf}</div>
                                     )
                                 }
