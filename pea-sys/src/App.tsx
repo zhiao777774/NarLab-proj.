@@ -1,11 +1,11 @@
 import {Route, Routes} from 'react-router-dom';
 import SidebarContainer from './components/sidebar';
-import {MyNav} from './components/myNav';
+import Gantt from './pages/Gantt';
+import TimeAnalysis from './pages/TimeAnalysis';
+import BERTopic from './pages/BERTopic';
+import LabelingPlatform from './pages/LabelingPlatform';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import Gantt from "./pages/Gantt";
-import TimeAnalysis from "./pages/TimeAnalysis";
-import BERTopic from "./pages/BERTopic";
 
 
 function App() {
@@ -19,6 +19,7 @@ function App() {
                     <Route path="/TimeAnalysis" element={<TimeAnalysis/>}/>
                     <Route path="/BERTopic" element={<BERTopic/>}/>
                     <Route path="/BERTopic/:figId" element={<BERTopic/>}/>
+                    <Route path="/Labeling-Platform" element={<LabelingPlatform/>}/>
                 </Routes>
             </SidebarContainer>
         </div>
