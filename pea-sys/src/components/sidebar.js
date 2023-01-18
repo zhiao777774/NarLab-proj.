@@ -1,10 +1,11 @@
 import {Link} from 'react-router-dom';
+import {Button, FormControl, InputGroup} from 'react-bootstrap';
 import {Menu, MenuItem, Sidebar, SubMenu, useProSidebar} from 'react-pro-sidebar';
-import {RouterMap} from '../constants/route';
 import {BsBarChartSteps, BsToggle2On, BsToggle2Off} from 'react-icons/bs';
-import {BiAnalyse, BiLineChart} from 'react-icons/bi';
+import {BiAnalyse, BiLineChart, BiSearchAlt2} from 'react-icons/bi';
 import {MdOutlineBubbleChart} from 'react-icons/md';
 import {RiBarChartHorizontalFill} from 'react-icons/ri';
+import {RouterMap} from '../constants/route';
 import {SidebarCollapsedContext} from '../helpers/context';
 import styles from './sidebar.module.css';
 
@@ -23,6 +24,23 @@ export default function SidebarContainer({children}) {
                         <Link to="/" className="text-decoration-none text-white">
                             {collapsed ? '' : '計畫演變分析系統'}
                         </Link>
+                        <div className="mt-3" onClick={() => console.log('click')}>
+                            {
+                                collapsed ?
+                                    <BiSearchAlt2 role="button" className={styles.searchIcon}/>
+                                    :
+                                    <InputGroup className="mb-3">
+                                        <FormControl
+                                            placeholder="Search"
+                                            readOnly={true}
+                                            role="button"
+                                        />
+                                        <Button variant="warning">
+                                            <BiSearchAlt2/>
+                                        </Button>
+                                    </InputGroup>
+                            }
+                        </div>
                     </div>
                     {collapsed ? null : <hr style={{width: '80%', margin: '0 auto'}}/>}
                     <div style={{
