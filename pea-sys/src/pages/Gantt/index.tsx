@@ -25,8 +25,8 @@ export default function Gantt() {
     const [departments, setDepartments] = useState<string[]>([]);
     const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
 
-    const minDataYear = 2014;
-    const maxDataYear = new Date().getFullYear() + 3;
+    const minDataYear = 2014 - 1911;
+    const maxDataYear = new Date().getFullYear() + 3 - 1911;
     const [displayedDate, setDisplayedDate] = useState<any>({
         start: new Date(minDataYear, 0),
         end: new Date(maxDataYear, 0)
@@ -173,7 +173,6 @@ export default function Gantt() {
         setDisplayTasks(getProjects());
     }
 
-
     const handleDateChange = (dates: any) => {
         const isSameDay = (d1: Date, d2: Date) => {
             return d1.getFullYear() === d2.getFullYear() &&
@@ -192,6 +191,11 @@ export default function Gantt() {
 
     const startYear = new Date(displayedDate.start).getFullYear();
     const endYear = new Date(displayedDate.end || new Date(maxDataYear, 0)).getFullYear();
+
+    const ceStartYear = startYear + 1911;
+    const ceEndYear = endYear + 1911;
+
+    console.log(ceStartYear, ceEndYear)
 
     console.log(displayTasks, searchData)
     return (
@@ -221,7 +225,7 @@ export default function Gantt() {
                                                                 borderBottomRightRadius: 0
                                                             }}
                                                     >
-                                                        {`${startYear - 1911} - ${endYear - 1911}`}
+                                                        {`${startYear} - ${endYear}`}
                                                     </button>
                                                 }
                                     />
@@ -288,7 +292,7 @@ export default function Gantt() {
                                             tasks={displayTasks.filter((t) => {
                                                 return t.type === 'project' ||
                                                     (
-                                                        t.start >= new Date(displayedDate.start.getFullYear(), 0)
+                                                        t.start >= new Date(ceStartYear, 0)
                                                     )
                                             }).map((t) => {
                                                 if (t.type === 'project') {
@@ -297,10 +301,10 @@ export default function Gantt() {
                                                         ...data,
                                                         start,
                                                         end,
-                                                        start_date: `${displayedDate.start.getFullYear()}-1-1`,
-                                                        duration: new Date(displayedDate.start.getFullYear(), 0)
+                                                        start_date: `${ceStartYear}-1-1`,
+                                                        duration: new Date(ceStartYear, 0)
                                                             // @ts-ignore
-                                                            .diffYear(new Date(endYear, 0))
+                                                            .diffYear(new Date(ceEndYear, 0))
                                                     }
                                                 } else {
                                                     const {start, end, ...data} = t;
@@ -315,8 +319,8 @@ export default function Gantt() {
                                                 }
                                             })}
                                             projects={getProjects()}
-                                            startYear={startYear}
-                                            endYear={endYear + 1}
+                                            startYear={ceStartYear}
+                                            endYear={ceEndYear + 1}
                                             clickEvent={handleExpanderClick}
                                         />
                                 )
