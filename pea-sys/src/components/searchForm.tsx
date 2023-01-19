@@ -2,6 +2,7 @@ import React, {useState, forwardRef, useContext} from 'react';
 import {Button, InputGroup, FormControl, Form} from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
+import {AiFillExclamationCircle} from 'react-icons/ai';
 import {advanceFormCMPT, conditionOperator, conditionType, CondTypeMapping} from '../constants/formComponents';
 import {SearchDataContext} from '../helpers/context';
 import styles from './myComponents.module.css';
@@ -58,6 +59,15 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' }>(
                                 />
                                 <Button variant="dark" onClick={() => setSearchString([''])}>Reset</Button>
                             </InputGroup>
+                            <Form.Label className={`d-block fw-bold mt-3 text-secondary ${styles.searchTips}`}
+                                        style={{fontSize: '14px'}}
+                                        htmlFor='keyword-1'>
+                                <AiFillExclamationCircle className="me-2 mb-1"/>
+                                <span>
+                                    基礎查詢功能會針對「計畫名稱」、「描述」、「關鍵字」及「類別」進行字串搜索。
+                                    並且能以「空白字符」做為分隔符號，進行多關鍵字的<span>聯集查詢</span>
+                                </span>
+                            </Form.Label>
                             <button ref={ref} type="submit" style={{display: 'none'}}/>
                         </Form>
                         :
@@ -66,7 +76,7 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' }>(
                                 inputCmpts.map(({fieldName, componentName}, i) => {
                                     return (
                                         <Form.Group className="mb-3" key={`form-component-${componentName}`}>
-                                            <Form.Label className="d-block fw-bold col-sm-2 mb-2"
+                                            <Form.Label className="d-block fw-bold mb-2" style={{fontSize: '14px'}}
                                                         htmlFor={componentName}>
                                                 {fieldName}
                                             </Form.Label>

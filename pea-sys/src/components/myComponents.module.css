@@ -42,6 +42,10 @@
     white-space: pre-line;
 }
 
+.searchTips > span > span {
+    color: darkred;
+}
+
 .darkDropdown:active {
     background-color: black !important;
     color: white !important;
