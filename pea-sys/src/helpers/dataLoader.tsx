@@ -13,7 +13,7 @@ const COLOR_LIST = [
 const PROJECT_COLOR = '#0A7373';
 const TASK_COLOR = '#2E4E78';
 
-export function loadData(catNum: string = '10'): Task[] {
+export function loadData(condition: Array<any> | null = null): Task[] {
     const projectData = require('../data/revised/dataset.json');
     const catSeries = require('../data/revised/category_statistic.json');
     const catProb = require('../data/revised/category_probability.json');
@@ -90,5 +90,78 @@ export function loadData(catNum: string = '10'): Task[] {
         tasks.push(project);
     }
 
-    return tasks;
+    return filter(tasks, condition);
+}
+
+
+function filter(tasks: Task[], condition: Array<any> | null = null) {
+    if (!condition) return tasks;
+
+    let tempTasks = [...tasks];
+    // @ts-ignore
+    if (typeof condition[0] === 'string') {
+        return tempTasks.filter((task) => {
+            return task.type === 'project' ||
+                condition.some((s: string) => {
+                    return task.name.includes(s) ||
+                        // @ts-ignore
+                        task.data.desp.includes(s) ||
+                        // @ts-ignore
+                        (task.data.keyword && task.data.keyword.includes(s)) ||
+                        // @ts-ignore
+                        task.data.category.includes(s);
+                });
+        });
+    }
+
+    let datasets: Task[] = [];
+    condition.filter(({operator}, i) => operator === 'or' || !i)
+        .forEach(({text, type}) => {
+            const tempDS = tempTasks.filter((task) => {
+                if (task.type === 'project') return true;
+
+                //@ts-ignore
+                const target = task[type] || task.data[type];
+                return target.includes(text);
+            });
+
+            //@ts-ignore
+            datasets = [...new Set([...datasets, ...tempDS].map(JSON.stringify))].map(JSON.parse);
+        });
+
+    condition.slice(1).filter(({operator}) => operator !== 'or')
+        .forEach(({text, type, operator}) => {
+            datasets = datasets.filter((task) => {
+                if (task.type === 'project') return true;
+
+                //@ts-ignore
+                const target = task[type] || task.data[type];
+                if (operator === 'and') {
+                    return target.includes(text);
+                } else if (operator === 'not') {
+                    return !target.includes(text);
+                }
+            });
+        });
+
+    const onlyTasks = datasets.filter(({type}) => type === 'task');
+    datasets = datasets.filter(({id, type}) => {
+        return type === 'task' || onlyTasks.some(({project}) => project === id);
+    }).map(({start, end, ...data}) => {
+        if (data.type === 'project')
+            return {
+                ...data,
+                isOpen: true,
+                start: new Date(start),
+                end: new Date(end)
+            };
+
+        return {
+            ...data,
+            start: new Date(start),
+            end: new Date(end)
+        };
+    });
+
+    return datasets;
 }

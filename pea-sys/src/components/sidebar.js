@@ -29,12 +29,6 @@ export default function SidebarContainer({children}) {
         }
     }, [searchData]);
 
-    useEffect(() => {
-        if (!openPanel) {
-            setSearchData(null);
-        }
-    }, [openPanel]);
-
     return (
         <SearchDataContext.Provider value={searchDataContextValue}>
             <SearchPopupPanelContext.Provider value={searchPopupPanelContextValue}>

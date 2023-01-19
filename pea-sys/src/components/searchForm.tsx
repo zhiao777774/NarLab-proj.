@@ -1,101 +1,20 @@
-import React, {useState, forwardRef} from 'react';
+import React, {useState, forwardRef, useContext} from 'react';
 import {Button, InputGroup, FormControl, Form} from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import {advanceFormCMPT, conditionOperator, conditionType, CondTypeMapping} from '../constants/formComponents';
+import {SearchDataContext} from '../helpers/context';
+import styles from './myComponents.module.css';
 
 export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' }>(
     ({searchType}, ref) => {
+        const {setSearchData} = useContext(SearchDataContext);
         const [inputCmpts, setInputCmpts] = useState(advanceFormCMPT[0]);
         const [searchString, setSearchString] = useState<string[]>(advanceFormCMPT[0].map(() => ''));
         const [condOperatorSelected, setCondOperatorSelected] = useState<string[]>(advanceFormCMPT[0].map(() => conditionOperator[0]));
         const [condTypeSelected, setCondTypeSelected] = useState<string[]>(advanceFormCMPT[0].map(() => conditionType[0]));
 
-        // const _search = async (event) => {
-        //     event.preventDefault();
-        //
-        //     const {target} = event;
-        //     if (!target['keyword-1'].value.replace(/ /g, '')) {
-        //         alert('請輸入檢索詞');
-        //         return;
-        //     }
-        //
-        //     const keyword = [];
-        //     this.state.inputCmpts.forEach(({componentName}, i) => {
-        //         const text = target[componentName].value;
-        //         if (text) {
-        //             const {type, operator} = this.inputCondDDL[i].selected;
-        //             keyword.push({
-        //                 text,
-        //                 type: CondTypeMapping(conditionType[type]),
-        //                 operator: conditionOperator[operator]
-        //             });
-        //         }
-        //     });
-        //
-        //     const postData = {
-        //         keyword,
-        //         searchType: 'advance'
-        //     };
-        //
-        //     advanceFormCMPT.slice(1).forEach(({componentName, inputType, elements}) => {
-        //         if (inputType === 'checkbox') {
-        //             postData[componentName] = {};
-        //             const component = Array.from(target[componentName]);
-        //             const isAllUnchecked = component.every(({checked}) => checked === false);
-        //
-        //             if (isAllUnchecked) {
-        //                 const elementNames = elements.map(({elementName}) => elementName);
-        //                 postData[componentName] = Object.fromEntries(new Map(
-        //                     elementNames.map((item) => [item, true])
-        //                 ));
-        //             } else {
-        //                 elements.forEach(({elementName}, i) => {
-        //                     postData[componentName][elementName] = component[i].checked;
-        //                 });
-        //             }
-        //         } else if (inputType === 'radio') {
-        //             postData[componentName] = target[componentName].value;
-        //         }
-        //     });
-        //
-        //     this.setState({disabled: true, queryResult: null});
-        //     // const res = await fetch('/api/data', {
-        //     //     method: 'POST',
-        //     //     headers: {'Content-Type': 'application/json'},
-        //     //     body: JSON.stringify(postData)
-        //     // });
-        //     // const result = await res.json();
-        //     //
-        //     // if (!!result) {
-        //     //     const db = Object.keys(postData.database).filter((db) => postData.database[db]);
-        //     //     const dbMap = Object.keys(databaseMap)
-        //     //         .filter((dbName) => db.includes(dbName))
-        //     //         .map(((dbName) => databaseMap[dbName]));
-        //     //     const queryResult = result.map((dataset, i) => {
-        //     //         return dataset.map((data) => {
-        //     //             const temp = {};
-        //     //             Object.keys(data).forEach((item) => {
-        //     //                 const keyMapped = QuerykeyMapping(item);
-        //     //                 if (!keyMapped) return;
-        //     //                 temp[keyMapped] = data[item];
-        //     //             });
-        //     //             temp['department'] = dbMap[i];
-        //     //
-        //     //             return temp;
-        //     //         });
-        //     //     });
-        //     //     this.setState({disabled: false, queryResult}, () => {
-        //     //         document.getElementById('retr-div')
-        //     //             .scrollIntoView({behavior: 'smooth'});
-        //     //     });
-        //     // } else {
-        //     //     alert('查詢失敗，請稍後再試');
-        //     //     this.setState({disabled: false});
-        //     // }
-        // }
-
-        const search = async (event: any) => {
+        const search = (event: any) => {
             event.preventDefault();
 
             const {target} = event;
@@ -105,7 +24,7 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' }>(
             }
 
             if (searchType === 'basic') {
-
+                setSearchData(target['keyword-1'].value.trim().split(' '));
             } else {
                 const keyword: object[] = [];
                 inputCmpts.forEach(({componentName}, i) => {
@@ -118,26 +37,27 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' }>(
                         });
                     }
                 });
-
-                console.log(keyword);
+                setSearchData(keyword);
             }
         };
-
 
         return (
             <div>
                 {
                     searchType === 'basic' ?
                         <Form onSubmit={search}>
-                            <FormControl
-                                placeholder="Search"
-                                aria-label="Search"
-                                aria-describedby="Search"
-                                name='keyword-1' id='keyword-1'
-                                value={searchString[0]}
-                                onChange={e => setSearchString([e.target.value])}
-                                required
-                            />
+                            <InputGroup>
+                                <FormControl
+                                    placeholder="Search"
+                                    aria-label="Search"
+                                    aria-describedby="Search"
+                                    name='keyword-1' id='keyword-1'
+                                    value={searchString[0]}
+                                    onChange={(e) => setSearchString([e.target.value])}
+                                    required
+                                />
+                                <Button variant="dark" onClick={() => setSearchString([''])}>Reset</Button>
+                            </InputGroup>
                             <button ref={ref} type="submit" style={{display: 'none'}}/>
                         </Form>
                         :
@@ -191,8 +111,8 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' }>(
                                     );
                                 })
                             }
-                            <div>
-                                <Button variant="success" type="button" size="sm"
+                            <div className="mt-4">
+                                <Button variant="outline-success" type="button" size="sm"
                                         className="me-2"
                                         onClick={() => {
                                             const n = inputCmpts.length + 1;
@@ -205,7 +125,7 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' }>(
                                         }}>
                                     新增條件
                                 </Button>
-                                <Button variant="danger" type="button" size="sm"
+                                <Button variant="outline-danger" type="button" size="sm"
                                         onClick={() => {
                                             if (inputCmpts.length > 3) {
                                                 const temp = inputCmpts.slice(0, inputCmpts.length - 1)
@@ -270,13 +190,16 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' }>(
         )
     });
 
+
 const DropdownList: React.FC<{ config: any, items: string[] }> =
     ({config, items}) => {
         return (
-            <DropdownButton id={config.id} title={config.title} onSelect={config.onSelected}
-                            variant="primary">
+            <DropdownButton id={config.id} title={config.title + ' '} onSelect={config.onSelected}
+                            variant="dark">
                 {
-                    items.map((text: string) => <Dropdown.Item eventKey={text}>{text}</Dropdown.Item>)
+                    items.map((text: string) =>
+                        <Dropdown.Item className={styles.darkDropdown} key={`dropdown-${config.id}-${text}`}
+                                       eventKey={text}>{text}</Dropdown.Item>)
                 }
             </DropdownButton>
         );
