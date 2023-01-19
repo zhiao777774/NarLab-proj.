@@ -149,6 +149,8 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' }>(
                             </div>
                             <div className="flex-col flex flex-wrap">
                                 {
+                                    //TODO: 目前沒有其他型態的選項，需要想看看有沒有要加進去的條件（例如部會？）
+                                    //      如果有加額外選項，search裡的內容要修改
                                     advanceFormCMPT.slice(1).map(({
                                                                       //@ts-ignore
                                                                       fieldName,

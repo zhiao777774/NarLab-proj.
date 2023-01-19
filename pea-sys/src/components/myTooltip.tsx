@@ -53,6 +53,7 @@ export const MyTooltip: React.FC<{
                             <p className={styles.tooltipComponent}>
                                 {task.name}
                             </p>
+                            {/*TODO: 文字雲的圖片需要修改（重跑Python生成） */}
                             <img className={styles.tooltipComponent} alt='wordcloud'
                                  src={require(`./wordcloud/category50/${task.id.replace('main_', '')}.png`)}/>
                         </Col>

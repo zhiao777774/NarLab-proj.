@@ -137,7 +137,6 @@ export default function Gantt() {
         return searchTasks;
     }
 
-
     const searchTaskName = (searchInput: string) => {
         if (!searchInput) return;
 
@@ -191,13 +190,11 @@ export default function Gantt() {
 
     const startYear = new Date(displayedDate.start).getFullYear();
     const endYear = new Date(displayedDate.end || new Date(maxDataYear, 0)).getFullYear();
-
     const ceStartYear = startYear + 1911;
     const ceEndYear = endYear + 1911;
 
-    console.log(ceStartYear, ceEndYear)
-
-    console.log(displayTasks, searchData)
+    // TODO: 剩餘Bug為無法將搜尋結果與部會選項結合，以及進行搜尋選擇時部會選項不會初始化
+    //       試過在resetDisplayedTask放入setSelectedDepartments([])，但會因為各種effect連動的關係導致搜尋結果跳掉
     return (
         <Row className="card-margin-top m-auto align-self-center">
             <Col>
