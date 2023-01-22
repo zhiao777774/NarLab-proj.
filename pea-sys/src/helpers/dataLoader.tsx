@@ -195,7 +195,7 @@ export function loadKeywords(searchSelected: object): keywordItem[] {
                 return catProb[proj.code]['predictCategoryTop5'].split(';').slice(0, 3);
             }).flat()
         )).map((name, i) => {
-            return {id: `proj-cat-${i}`, name};
+            return {id: `proj-cat-${i}`, name, type: '類別'};
         }) as keywordItem[];
 
         keywords.push(...keywordsByCategory);
