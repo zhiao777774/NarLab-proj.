@@ -1,19 +1,36 @@
-import React, {useState, forwardRef, useContext} from 'react';
+import React, {useState, forwardRef, useContext, useEffect} from 'react';
 import {Button, InputGroup, FormControl, Form} from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import {AiFillExclamationCircle} from 'react-icons/ai';
+import {AutoComplete, keywordItem} from './autoComplete';
 import {advanceFormCMPT, conditionOperator, conditionType, CondTypeMapping} from '../constants/formComponents';
 import {SearchDataContext} from '../helpers/context';
+import {loadKeywords} from '../helpers/dataLoader';
 import styles from './myComponents.module.css';
 
-export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' }>(
+export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' | 'auto-complete' }>(
     ({searchType}, ref) => {
         const {setSearchData} = useContext(SearchDataContext);
         const [inputCmpts, setInputCmpts] = useState(advanceFormCMPT[0]);
         const [searchString, setSearchString] = useState<string[]>(advanceFormCMPT[0].map(() => ''));
         const [condOperatorSelected, setCondOperatorSelected] = useState<string[]>(advanceFormCMPT[0].map(() => conditionOperator[0]));
         const [condTypeSelected, setCondTypeSelected] = useState<string[]>(advanceFormCMPT[0].map(() => conditionType[0]));
+        const [searchSelected, setSearchSelected] = useState<any>({
+            name: {
+                text: '計畫名稱',
+                selected: true
+            },
+            category: {
+                text: '計畫類別',
+                selected: true
+            }
+        });
+        let searchKeywords: keywordItem[] = loadKeywords(searchSelected);
+
+        useEffect(() => {
+            searchKeywords = loadKeywords(searchSelected);
+        }, [searchSelected]);
 
         const search = (event: any) => {
             event.preventDefault();
@@ -24,50 +41,88 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' }>(
                 return;
             }
 
-            if (searchType === 'basic') {
-                setSearchData(target['keyword-1'].value.trim().split(' '));
-            } else {
-                const keyword: object[] = [];
-                inputCmpts.forEach(({componentName}, i) => {
-                    const text = target[componentName].value;
-                    if (text) {
-                        keyword.push({
-                            text,
-                            type: CondTypeMapping(condTypeSelected[i]),
-                            operator: condOperatorSelected[i]
-                        });
-                    }
-                });
-                setSearchData(keyword);
+            switch (searchType) {
+                default:
+                case 'basic':
+                    setSearchData(target['keyword-1'].value.trim().split(' '));
+                    break;
+                case 'advance': {
+                    const keyword: object[] = [];
+                    inputCmpts.forEach(({componentName}, i) => {
+                        const text = target[componentName].value;
+                        if (text) {
+                            keyword.push({
+                                text,
+                                type: CondTypeMapping(condTypeSelected[i]),
+                                operator: condOperatorSelected[i]
+                            });
+                        }
+                    });
+                    setSearchData(keyword);
+                    break;
+                }
+                case 'auto-complete':
+                    setSearchData(target['keyword-1'].value.trim().split(' '));
+                    break;
             }
         };
 
         return (
             <div>
                 {
-                    searchType === 'basic' ?
+                    searchType === 'basic' || searchType === 'auto-complete' ?
                         <Form onSubmit={search}>
-                            <InputGroup>
-                                <FormControl
-                                    placeholder="Search"
-                                    aria-label="Search"
-                                    aria-describedby="Search"
-                                    name='keyword-1' id='keyword-1'
-                                    value={searchString[0]}
-                                    onChange={(e) => setSearchString([e.target.value])}
-                                    required
-                                />
-                                <Button variant="dark" onClick={() => setSearchString([''])}>Reset</Button>
-                            </InputGroup>
-                            <Form.Label className={`d-block fw-bold mt-3 text-secondary ${styles.searchTips}`}
-                                        style={{fontSize: '14px'}}
-                                        htmlFor='keyword-1'>
-                                <AiFillExclamationCircle className="me-2 mb-1"/>
-                                <span>
-                                    基礎查詢功能會針對「計畫名稱」、「描述」、「關鍵字」及「類別」進行字串搜索。
-                                    並且能以「空白字符」做為分隔符號，進行多關鍵字的<span>聯集查詢</span>
-                                </span>
-                            </Form.Label>
+                            {
+                                searchType === 'basic' ?
+                                    <InputGroup>
+                                        <FormControl
+                                            placeholder="Search"
+                                            aria-label="Search"
+                                            aria-describedby="Search"
+                                            name='keyword-1' id='keyword-1'
+                                            value={searchString[0]}
+                                            onChange={(e) => setSearchString([e.target.value])}
+                                            required
+                                        />
+                                        <Button variant="dark" onClick={() => setSearchString([''])}>Reset</Button>
+                                    </InputGroup>
+                                    :
+                                    <AutoComplete items={searchKeywords}/>
+                            }
+                            <Form.Group className="mt-3">
+                                {
+                                    searchType === 'basic' ?
+                                        <Form.Label
+                                            className={`d-block fw-bold text-secondary ${styles.searchTips}`}
+                                            style={{fontSize: '14px'}}
+                                            htmlFor='keyword-1'>
+                                            <AiFillExclamationCircle className="me-2 mb-1"/>
+                                            <span>
+                                            基礎查詢功能會針對「計畫名稱」、「描述」、「關鍵字」及「類別」進行字串搜索。
+                                            並且能以「空白字符」做為分隔符號，進行多關鍵字的<span>聯集查詢</span>
+                                        </span>
+                                        </Form.Label>
+                                        :
+                                        Object.keys(searchSelected).map((name) => {
+                                            return (
+                                                <Form.Check
+                                                    style={{marginLeft: '3px', fontSize: '15px'}}
+                                                    inline
+                                                    type="checkbox"
+                                                    id={`search-chk-${name}`}
+                                                    name="search-chk"
+                                                    label={searchSelected[name].text}
+                                                    checked={searchSelected[name].selected}
+                                                    onChange={() => {
+                                                        const temp = {...searchSelected};
+                                                        temp[name].selected = !searchSelected[name].selected;
+                                                        setSearchSelected(temp);
+                                                    }}
+                                                />
+                                            );
+                                        })
+                                }
+                            </Form.Group>
                             <button ref={ref} type="submit" style={{display: 'none'}}/>
                         </Form>
                         :

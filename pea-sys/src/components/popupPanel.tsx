@@ -9,7 +9,7 @@ import styles from './popupPanel.module.css';
 
 export const PopupPanel: React.FC = () => {
     const {openPanel, setOpenPanel} = useContext(SearchPopupPanelContext);
-    const [searchType, setSearchType] = useState<'basic' | 'advance'>('advance');
+    const [searchType, setSearchType] = useState<'basic' | 'advance' | 'auto-complete'>('advance');
     const formRef = useRef(null);
 
     const closePanel = () => setOpenPanel(false);
@@ -33,6 +33,10 @@ export const PopupPanel: React.FC = () => {
                         <SearchForm ref={formRef} searchType={searchType}/>
                     </div>
                     <div className={styles.actions}>
+                        <Button size="sm" variant={searchType === 'auto-complete' ? 'primary' : 'secondary'}
+                                onClick={() => setSearchType('auto-complete')}>
+                            自動完成
+                        </Button>
                         <Button size="sm" variant={searchType === 'basic' ? 'primary' : 'secondary'}
                                 onClick={() => setSearchType('basic')}>
                             基礎查詢
