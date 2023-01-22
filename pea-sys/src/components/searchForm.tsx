@@ -26,17 +26,14 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' | 'a
                 selected: true
             }
         });
-        let searchKeywords: keywordItem[] = loadKeywords(searchSelected);
-
-        useEffect(() => {
-            searchKeywords = loadKeywords(searchSelected);
-        }, [searchSelected]);
+        const searchKeywords: keywordItem[] = loadKeywords(searchSelected);
 
         const search = (event: any) => {
             event.preventDefault();
 
             const {target} = event;
-            if (!target['keyword-1'].value.replace(/ /g, '')) {
+            const input = target['keyword-1'] || target[0];
+            if (!input.value.replace(/ /g, '')) {
                 alert('請輸入檢索詞');
                 return;
             }
@@ -62,7 +59,7 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' | 'a
                     break;
                 }
                 case 'auto-complete':
-                    setSearchData(target['keyword-1'].value.trim().split(' '));
+                    setSearchData(target[0].value.trim().split(' '));
                     break;
             }
         };
