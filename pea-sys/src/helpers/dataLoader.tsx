@@ -1,6 +1,7 @@
 import category from '../constants/category';
 import {Task} from '../constants/taskPropType';
 import {numberRange} from '../utils/range';
+import {keywordItem} from '../components/autoComplete';
 
 const COLOR_LIST = [
     '#010221', '#010221', '#010221', '#0A7373',
@@ -17,7 +18,7 @@ export function loadData(condition: Array<any> | null = null): Task[] {
     const projectData = require('../data/revised/dataset.json');
     const catSeries = require('../data/revised/category_statistic.json');
     const catProb = require('../data/revised/category_probability.json');
-    const TfIdf = require('../data/revised/tfidf_revised.json');
+    const tfIdf = require('../data/revised/tfidf_revised.json');
 
     const tasks: Task[] = [];
     const yearRange = numberRange(103, 110, true);
@@ -76,7 +77,7 @@ export function loadData(condition: Array<any> | null = null): Task[] {
             data: {
                 keyword: proj.chineseKeyword,
                 tfidf: {
-                    ...TfIdf[proj.code].tfidf
+                    ...tfIdf[proj.code].tfidf
                 },
                 desp: proj.description.replaceAll('_x000D_', '\n'),
                 department: proj.department,
@@ -164,4 +165,41 @@ function filter(tasks: Task[], condition: Array<any> | null = null) {
     });
 
     return datasets;
+}
+
+export function loadKeywords(searchSelected: object): keywordItem[] {
+    const projectData = require('../data/revised/dataset.json');
+    const catProb = require('../data/revised/category_probability.json');
+    const keywords: keywordItem[] = [];
+
+    // @ts-ignore
+    if (searchSelected.name.selected) {
+        const keywordsByName = Array.from(new Set(
+            projectData.flatMap((proj: { name: string }) => {
+                if (!proj.name) return [];
+                const splitIndex = proj.name.lastIndexOf('(');
+                return proj.name.substring(0, splitIndex);
+            })
+        )).map((name, i) => {
+            return {id: `proj-name-${i}`, name};
+        }) as keywordItem[];
+
+        keywords.push(...keywordsByName);
+    }
+
+    // @ts-ignore
+    if (searchSelected.category.selected) {
+        const keywordsByCategory = Array.from(new Set(
+            projectData.flatMap((proj: { code: string }) => {
+                if (!proj.code) return [];
+                return catProb[proj.code]['predictCategoryTop5'].split(';').slice(0, 3);
+            }).flat()
+        )).map((name, i) => {
+            return {id: `proj-cat-${i}`, name};
+        }) as keywordItem[];
+
+        keywords.push(...keywordsByCategory);
+    }
+
+    return keywords;
 }
