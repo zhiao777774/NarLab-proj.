@@ -33,7 +33,7 @@ for c in class_name:
 
     if clean_seg != '':
         wordcloud = WordCloud(background_color="white", contour_width=1, contour_color='steelblue', font_path=font_path).generate(clean_seg)
-        wordcloud.to_file('./data/wordcloud/' + str(idx) + '.png')
+        wordcloud.to_file('./pea-sys/src/data/wordcloud/' + str(idx) + '.png')
         print('save succeed')
     
     idx += 1
