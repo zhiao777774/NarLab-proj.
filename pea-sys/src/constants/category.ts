@@ -1,4 +1,4 @@
-const category =  [
+const category: string[] =  [
     'AI、雲端、巨量資料',
     '虛擬實境',
     '人才補助與延攬',

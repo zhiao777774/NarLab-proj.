@@ -2,11 +2,11 @@ import {useCallback, useEffect, useState, useContext} from 'react';
 import {Card, Row, Col, InputGroup, FormControl, Button} from 'react-bootstrap';
 import MultiSelect from 'multiselect-react-dropdown';
 import DatePicker, {registerLocale} from 'react-datepicker';
-import {MyInfo} from '../../components/myInfo';
-import GanttChart from '../../components/ganttChart';
-import {loadData} from '../../helpers/dataLoader';
-import {SearchPopupPanelContext, SearchDataContext} from '../../helpers/context';
-import {Task} from '../../constants/taskPropType';
+import {InfoPanel} from '../../components/InfoPanel';
+import GanttChart from '../../components/GanttChart';
+import {loadData} from '../../utils/dataLoader';
+import {SearchPopupPanelContext, SearchDataContext} from '../../helpers/contexts';
+import {Task} from '../../constants/types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import tw from 'date-fns/locale/zh-TW';
@@ -68,10 +68,11 @@ export default function Gantt() {
 
     useEffect(() => {
         setSearchString('');
-        resetDisplayedTask();
         getDepartments();
         if (searchData) {
             setDisplayTasks(loadData(searchData));
+        } else {
+            reset();
         }
     }, [allTasks, getProjects, searchData]);
 
@@ -126,10 +127,9 @@ export default function Gantt() {
 
         let searchTasks: Task[] = allTasks;
 
-        function searchDepartment(t: Task) {
-            let temp: any = t;
-            if (temp.type !== 'task') return false;
-            return selectedDepartments.includes(temp.data.department);
+        function searchDepartment(task: Task) {
+            if (task.type !== 'task') return false;
+            return selectedDepartments.includes(task.data.department);
         }
 
         searchTasks = searchTasks.filter(searchDepartment);
@@ -162,15 +162,16 @@ export default function Gantt() {
         return searchTasks;
     }
 
-    const resetDisplayedTask = () => {
+    const reset = () => {
         setSearchString('');
-        // if (!selectedDepartments.length) {
+        // if (selectedDepartments.length) {
         //     setDisplayTasks(getDepartmentTasks());
         // } else {
         //     setDisplayTasks(getProjects());
         // }
+        setSelectedDepartments([]);
         setDisplayTasks(getProjects());
-    }
+    };
 
     const handleDateChange = (dates: any) => {
         const isSameDay = (d1: Date, d2: Date) => {
@@ -271,7 +272,7 @@ export default function Gantt() {
                                             onClick={() => searchTaskName(searchString)}>
                                         Search
                                     </Button>
-                                    <Button variant="dark" onClick={() => resetDisplayedTask()}>
+                                    <Button variant="dark" onClick={() => reset()}>
                                         Reset
                                     </Button>
                                     <Button variant="warning" onClick={() => setOpenPanel(true)}>
@@ -330,7 +331,7 @@ export default function Gantt() {
             <span>
                     {
                         (curTask != null && curTask.type === "task") ?
-                            <MyInfo
+                            <InfoPanel
                                 task={curTask}
                                 setCurTask={setCurTask}
                             /> : null

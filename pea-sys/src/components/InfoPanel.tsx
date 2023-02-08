@@ -3,12 +3,9 @@ import {Alert, Row, Col, CloseButton} from 'react-bootstrap';
 import {AiOutlineKey} from 'react-icons/ai'
 import {HiDocumentMagnifyingGlass} from 'react-icons/hi2';
 import {Task} from '../constants/types';
-import styles from './myComponents.module.css';
+import styles from './InfoPanel.module.css';
 
-export const MyInfo: React.FC<{
-    task: Task;
-    setCurTask: Function;
-}> = ({task, setCurTask}) => {
+export const InfoPanel: React.FC<{ task: Task; setCurTask: Function; }> = ({task, setCurTask}) => {
     if (task === undefined) return null;
 
     // https://stackoverflow.com/questions/35351706/how-to-render-a-multi-line-text-string-in-react
@@ -43,7 +40,7 @@ export const MyInfo: React.FC<{
                                     <div className="mb-0 text-black overflow-auto" style={{maxHeight: '200px'}}>
                                         {task.data.keyword.split(/[;,，、]/).map((kw: string, i: number) =>
                                             <div key={`${task.id}_keyword_${i}`}
-                                                className="d-inline-block rounded-2 bg-warning bg-opacity-50 py-1 px-2 m-2">{kw}</div>
+                                                 className="d-inline-block rounded-2 bg-warning bg-opacity-50 py-1 px-2 m-2">{kw}</div>
                                         )}
                                     </div>
                                 </Alert>
@@ -59,13 +56,14 @@ export const MyInfo: React.FC<{
                                 {
                                     task.data.tfidf.CH.map((tfidf: string, i: number) =>
                                         <div key={`${task.id}_tfidf_ch${i}`}
-                                            className="d-inline-block rounded-2 bg-info bg-opacity-50 py-1 px-2 m-2">{tfidf}</div>
+                                             className="d-inline-block rounded-2 bg-info bg-opacity-50 py-1 px-2 m-2">{tfidf}</div>
                                     )
                                 }
                                 {
+                                    // TODO: 把英文斷詞分開放
                                     task.data.tfidf.EN.map((tfidf: string, i: number) =>
                                         <div key={`${task.id}_tfidf_en${i}`}
-                                            className="d-inline-block rounded-2 bg-success bg-opacity-50 py-1 px-2 m-2">{tfidf}</div>
+                                             className="d-inline-block rounded-2 bg-success bg-opacity-50 py-1 px-2 m-2">{tfidf}</div>
                                     )
                                 }
                             </div>

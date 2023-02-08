@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import {Button, FormControl, InputGroup} from 'react-bootstrap';
 import {Menu, MenuItem, Sidebar, SubMenu, useProSidebar} from 'react-pro-sidebar';
@@ -7,12 +7,12 @@ import {BiAnalyse, BiLineChart, BiSearchAlt2} from 'react-icons/bi';
 import {MdOutlineBubbleChart} from 'react-icons/md';
 import {RiBarChartHorizontalFill} from 'react-icons/ri';
 import {AiOutlineEdit} from 'react-icons/ai';
+import {PopupPanel} from './PopupPanel';
 import {RouterMap} from '../constants/route';
-import {PopupPanel} from './popupPanel';
 import {SidebarCollapsedContext, SearchPopupPanelContext, SearchDataContext} from '../helpers/contexts';
-import styles from './sidebar.module.css';
+import styles from './Sidebar.module.css';
 
-export default function SidebarContainer({children}) {
+export const SidebarContainer: React.FC<{ children: React.ReactNode; }> = ({children}) => {
     const {collapseSidebar, collapsed} = useProSidebar();
     const navigate = useNavigate();
 
@@ -139,11 +139,10 @@ export default function SidebarContainer({children}) {
                 </SidebarCollapsedContext.Provider>
             </SearchPopupPanelContext.Provider>
         </SearchDataContext.Provider>
-    )
-}
+    );
+};
 
-
-const Typography = ({collapsed, children}) => {
+const Typography = ({collapsed, children}: { collapsed: boolean; children: React.ReactNode; }) => {
     return (
         <div style={{padding: '0 24px', marginBottom: '8px'}}>
             <div
@@ -153,5 +152,5 @@ const Typography = ({collapsed, children}) => {
                 {children}
             </div>
         </div>
-    )
+    );
 };

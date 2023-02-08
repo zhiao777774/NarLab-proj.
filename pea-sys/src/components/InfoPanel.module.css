@@ -1,0 +1,22 @@
+.infoPanelContainer {
+    max-width: 45vw;
+    padding: 20px;
+    max-height: 1800px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    background-color: #FFF;
+    position: absolute;
+    top: 6%;
+    left: 50%;
+    text-align: left;
+    z-index: 100;
+    border-radius: 13px;
+}
+
+.infoPanelDesp {
+    text-align: left;
+    background-color: #FFF;
+    padding: 5px;
+    height: 50vh;
+    overflow-y: scroll;
+    white-space: pre-line;
+}

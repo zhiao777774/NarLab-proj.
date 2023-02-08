@@ -1,15 +1,16 @@
-import React, {useState, forwardRef, useContext, useEffect} from 'react';
+import React, {useState, forwardRef, useContext} from 'react';
 import {Button, InputGroup, FormControl, Form} from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import {AiFillExclamationCircle} from 'react-icons/ai';
-import {AutoComplete, keywordItem} from './autoComplete';
-import {advanceFormCMPT, conditionOperator, conditionType, CondTypeMapping} from '../constants/formComponents';
-import {SearchDataContext} from '../helpers/context';
-import {loadKeywords} from '../helpers/dataLoader';
-import styles from './myComponents.module.css';
+import {Autocomplete, AutocompleteResourceItem} from './Autocomplete';
+import {advanceFormCMPT, conditionOperator, conditionType, CondTypeMapping} from '../constants/searchFormElements';
+import {SearchType} from '../constants/types';
+import {SearchDataContext} from '../helpers/contexts';
+import {loadKeywords} from '../utils/dataLoader';
+import styles from './SearchForm.module.css';
 
-export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' | 'auto-complete' }>(
+export const SearchForm = forwardRef<any, { searchType: SearchType }>(
     ({searchType}, ref) => {
         const {setSearchData} = useContext(SearchDataContext);
         const [inputCmpts, setInputCmpts] = useState(advanceFormCMPT[0]);
@@ -26,7 +27,7 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' | 'a
                 selected: true
             }
         });
-        const searchKeywords: keywordItem[] = loadKeywords(searchSelected);
+        const searchKeywords: AutocompleteResourceItem[] = loadKeywords(searchSelected);
 
         const search = (event: any) => {
             event.preventDefault();
@@ -59,7 +60,7 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' | 'a
                     break;
                 }
                 case 'auto-complete':
-                    setSearchData(target[0].value.trim().split(' '));
+                    setSearchData([target[0].value.trim()]);
                     break;
             }
         };
@@ -84,7 +85,7 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' | 'a
                                         <Button variant="dark" onClick={() => setSearchString([''])}>Reset</Button>
                                     </InputGroup>
                                     :
-                                    <AutoComplete items={searchKeywords}/>
+                                    <Autocomplete resourceList={searchKeywords}/>
                             }
                             <Form.Group className="mt-3">
                                 {
@@ -252,10 +253,10 @@ export const SearchForm = forwardRef<any, { searchType: 'basic' | 'advance' | 'a
                 }
             </div>
         )
-    });
+    }
+);
 
-
-const DropdownList: React.FC<{ config: any, items: string[] }> =
+const DropdownList: React.FC<{ config: any; items: string[]; }> =
     ({config, items}) => {
         return (
             <DropdownButton id={config.id} title={config.title + ' '} onSelect={config.onSelected}

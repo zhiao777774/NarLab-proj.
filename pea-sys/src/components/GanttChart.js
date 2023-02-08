@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {gantt} from 'dhtmlx-gantt';
-import {MyTooltip} from './myTooltip';
-import {SidebarCollapsedContext} from '../helpers/context';
+import {Tooltip} from './Tooltip';
+import {SidebarCollapsedContext} from '../helpers/contexts';
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
 
 export default class GanttChart extends Component {
@@ -195,7 +195,7 @@ export default class GanttChart extends Component {
                             left: tooltip.x + 'px',
                             top: tooltip.y + 'px',
                         }}>
-                            <MyTooltip task={tooltip}/>
+                            <Tooltip task={tooltip}/>
                         </div>
                         : null
                 }

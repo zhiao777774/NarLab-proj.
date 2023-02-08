@@ -1,0 +1,20 @@
+.tooltipContainer {
+    max-width: 70vw !important;
+    max-height: 90vh;
+    height: 100%;
+    align-items: center;
+    padding: 16px 10px 10px;
+    background-color: #FFF;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    z-index: 100;
+    position: relative;
+}
+
+.tooltipComponent {
+    width: 350px;
+    margin-bottom: 6px;
+}
+
+.barChart {
+    width: 400px;
+}

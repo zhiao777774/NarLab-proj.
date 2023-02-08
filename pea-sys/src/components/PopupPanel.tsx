@@ -2,14 +2,15 @@ import React, {useContext, useState, useRef} from 'react';
 import {Button} from 'react-bootstrap';
 import Popup from 'reactjs-popup';
 import {AiFillCloseCircle} from 'react-icons/ai';
-import {SearchForm} from './searchForm';
-import {SearchPopupPanelContext} from '../helpers/context';
+import {SearchForm} from './SearchForm';
+import {SearchType} from '../constants/types';
+import {SearchPopupPanelContext} from '../helpers/contexts';
 import 'reactjs-popup/dist/index.css';
-import styles from './popupPanel.module.css';
+import styles from './PopupPanel.module.css';
 
 export const PopupPanel: React.FC = () => {
     const {openPanel, setOpenPanel} = useContext(SearchPopupPanelContext);
-    const [searchType, setSearchType] = useState<'basic' | 'advance' | 'auto-complete'>('advance');
+    const [searchType, setSearchType] = useState<SearchType>('advance');
     const formRef = useRef(null);
 
     const closePanel = () => setOpenPanel(false);

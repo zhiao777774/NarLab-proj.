@@ -1,5 +1,5 @@
 import {Route, Routes} from 'react-router-dom';
-import SidebarContainer from './components/sidebar';
+import {SidebarContainer} from './components/Sidebar';
 import Gantt from './pages/Gantt';
 import TimeAnalysis from './pages/TimeAnalysis';
 import BERTopic from './pages/BERTopic';

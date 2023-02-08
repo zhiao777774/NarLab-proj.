@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import Chart from 'react-apexcharts';
-import {loadData} from '../../helpers/dataLoader';
+import {loadData} from '../../utils/dataLoader';
 
 export default function TimeAnalysis() {
     const allTasks = loadData();

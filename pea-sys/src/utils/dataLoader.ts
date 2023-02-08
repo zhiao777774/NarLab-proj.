@@ -1,7 +1,7 @@
 import category from '../constants/category';
 import {Task} from '../constants/types';
-import {numberRange} from '../utils/range';
-import {AutocompleteResourceItem} from '../components/autocomplete';
+import {numberRange} from './range';
+import {AutocompleteResourceItem} from '../components/Autocomplete';
 
 const COLOR_LIST = [
     '#010221', '#010221', '#010221', '#0A7373',
