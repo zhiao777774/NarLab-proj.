@@ -1,11 +1,9 @@
-import React from 'react';
-import {Route, Routes} from 'react-router-dom';
+import {Routes, Route} from 'react-router-dom';
 import BERTopic from '../../pages/BERTopic';
 
-export const BERTopicRouter = () => {
-    return (
-        <Routes>
-            <Route path="/BERTopic/:figId" element={<BERTopic/>}/>
-        </Routes>
-    )
-};
+export const BERTopicRoutes = (
+    <Routes>
+        <Route path="/BERTopic" element={<BERTopic/>}/>
+        <Route path="/BERTopic/:figId" element={<BERTopic/>}/>
+    </Routes>
+);

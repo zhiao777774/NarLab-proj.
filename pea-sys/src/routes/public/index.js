@@ -1,19 +1,13 @@
-import React from 'react';
-// import {GanttRouter} from './GanttRouter';
-// import {TimeAnalysisRouter} from './TimeAnalysisRouter';
-// import {BERTopicRouter} from './BERTopicRouter';
-import Gantt from "../../pages/Gantt";
-import {Route} from "react-router-dom";
-import TimeAnalysis from "../../pages/TimeAnalysis";
-import BERTopic from "../../pages/BERTopic";
+import {Routes} from 'react-router-dom';
+import {GanttRoutes} from './GanttRoutes';
+import {TimeAnalysisRoutes} from './TimeAnalysisRoutes';
+import {BERTopicRoutes} from './BERTopicRoutes';
 
 
-export const PublicRouter = () => {
-    return (
-        <>
-            <Route path="/Gantt" element={<Gantt/>}/>
-            <Route path="/TimeAnalysis" element={<TimeAnalysis/>}/>
-            <Route path="/BERTopic/:figId" element={<BERTopic/>}/>
-        </>
-    )
-};
+export const PublicRoutes = (
+    <Routes>
+        {GanttRoutes}
+        {TimeAnalysisRoutes}
+        {BERTopicRoutes}
+    </Routes>
+);
