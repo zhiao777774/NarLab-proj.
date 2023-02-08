@@ -21,19 +21,37 @@ idx = 0
 # 3152
 for c in class_name:
     print(c)
-    clean_seg = ''
+    tfidf_str = ''
     
     for i in range(3152):
         if data.iloc[i]['新標籤'] == c:
             for t in tfidf:
                 if t['code'] == data.iloc[i]['系統編號']:
                     for ch in t['tfidf']['CH']:                   
-                        clean_seg += ch + ' '
+                        tfidf_str += ch + ' '
 
 
-    if clean_seg != '':
-        wordcloud = WordCloud(background_color="white", contour_width=1, contour_color='steelblue', font_path=font_path).generate(clean_seg)
+    if tfidf_str != '':
+        wordcloud = WordCloud(background_color='white', contour_width=1, contour_color='steelblue', font_path=font_path).generate(tfidf_str)
         wordcloud.to_file('./pea-sys/src/data/wordcloud/' + str(idx) + '.png')
         print('save succeed')
     
     idx += 1
+
+
+# use the code below if no data is in a specific class
+# tfidf_str = ''
+
+# for i in range(3152):
+#     if isinstance(data.iloc[i]['中文關鍵詞'], str):
+#         if '虛擬實境' in data.iloc[i]['中文關鍵詞']:
+#             for t in tfidf:
+#                 if t['code'] == data.iloc[i]['系統編號']:
+#                     for ch in t['tfidf']['CH']:                   
+#                         tfidf_str += ch + ' '
+
+
+# if tfidf_str != '':
+#     wordcloud = WordCloud(background_color='white', contour_width=1, contour_color='steelblue', font_path=font_path).generate(tfidf_str)
+#     wordcloud.to_file('./pea-sys/src/data/wordcloud/1.png')
+#     print('save succeed')
