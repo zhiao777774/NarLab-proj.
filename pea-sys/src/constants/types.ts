@@ -32,6 +32,7 @@ export interface Task {
     readonly data: TaskData;
     project?: string;
     parent?: string;
+    isOpen?: boolean;
 }
 
 export type SearchType = 'basic' | 'advance' | 'auto-complete';
