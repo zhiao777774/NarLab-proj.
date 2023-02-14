@@ -121,7 +121,7 @@ export default function Gantt() {
 
     const getDepartmentTasks = (): Task[] => {
         const isDepEmpty = selectedDepartments.length === 0;
-        if (isDepEmpty && !searchString) return allTasks;
+        if (isDepEmpty && !searchString) return getProjects(); // TODO: 會影響第一次與重置後的資料
         if (isDepEmpty) return allTasks;
 
         let searchTasks: Task[] = allTasks;
@@ -169,7 +169,7 @@ export default function Gantt() {
         //     setDisplayTasks(getProjects());
         // }
         setSelectedDepartments([]);
-        setDisplayTasks(getProjects());
+        setDisplayTasks(getProjects()); // TODO: 會影響第一次與重置後的資料
     };
 
     const handleDateChange = (dates: any) => {
@@ -192,8 +192,6 @@ export default function Gantt() {
     const endYear = new Date(displayedDate.end || new Date(maxDataYear, 0)).getFullYear();
     const ceStartYear = startYear + 1911;
     const ceEndYear = endYear + 1911;
-
-    console.log(displayTasks);
 
     // TODO: 剩餘Bug為無法將搜尋結果與部會選項結合，以及進行搜尋選擇時部會選項不會初始化
     //       試過在resetDisplayedTask放入setSelectedDepartments([])，但會因為各種effect連動的關係導致搜尋結果跳掉

@@ -3,6 +3,7 @@ import {gantt} from 'dhtmlx-gantt';
 import {Tooltip} from './Tooltip';
 import {SidebarCollapsedContext} from '../helpers/contexts';
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
+import {loadData, loadDataByCategory} from "../utils/dataLoader";
 
 export default class GanttChart extends Component {
     static contextType = SidebarCollapsedContext;
@@ -43,17 +44,26 @@ export default class GanttChart extends Component {
         this.event.onTaskClick = gantt.attachEvent('onTaskClick', (id) => {
             if (id.startsWith('main_')) {
                 const tmpTask = tasks.filter((t) => t.id === id)[0];
-                if (tmpTask.hasOwnProperty('isOpen')) {
-                    if (tmpTask.isOpen) {
-                        tmpTask.isOpen = false;
-                        gantt.close(id);
-                    } else {
-                        tmpTask.isOpen = true;
-                        gantt.open(id);
-                    }
-                } else {
+
+                let hasChild = false;
+                gantt.eachTask((t) => {
+                    if (t) hasChild = true;
+                }, id);
+
+                if (tmpTask.isOpen) {
                     tmpTask.isOpen = false;
                     gantt.close(id);
+                } else {
+                    tmpTask.isOpen = true;
+
+                    if (!hasChild) {
+                        const children = loadDataByCategory(tmpTask.name);
+                        children.forEach((t) => {
+                            gantt.addTask(t, t.parent);
+                        });
+                    }
+
+                    gantt.open(id);
                 }
             }
             clickEvent(id);
@@ -135,7 +145,7 @@ export default class GanttChart extends Component {
 
         gantt.config.show_grid = false;
         gantt.config.readonly = true;
-        gantt.config.open_tree_initially = true;
+        gantt.config.open_tree_initially = false;
 
         gantt.config.scale_unit = 'year';
         gantt.config.date_format = '%Y-%m-%d';
