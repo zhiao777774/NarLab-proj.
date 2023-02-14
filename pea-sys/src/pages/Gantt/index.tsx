@@ -18,7 +18,7 @@ export default function Gantt() {
     const {searchData, setSearchData} = useContext(SearchDataContext);
 
     const [allTasks, setAllTasks] = useState<Task[]>(loadData());
-    let [displayTasks, setDisplayTasks] = useState<Task[]>([]);
+    const [displayTasks, setDisplayTasks] = useState<Task[]>([]);
     const [curTask, setCurTask] = useState<Task>();
     const [searchString, setSearchString] = useState<string>('');
 
@@ -26,8 +26,8 @@ export default function Gantt() {
     const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
 
     const minDataYear = 2014 - 1911;
-    const maxDataYear = new Date().getFullYear() + 3 - 1911;
-    const [displayedDate, setDisplayedDate] = useState<any>({
+    const maxDataYear = new Date().toRepublicYear().getFullYear() + 3;
+    const [displayedDate, setDisplayedDate] = useState<{ start: Date, end: Date }>({
         start: new Date(minDataYear, 0),
         end: new Date(maxDataYear, 0)
     });
@@ -51,9 +51,9 @@ export default function Gantt() {
     const getDepartments = useCallback(() => {
         let _departments: string[] = []
 
-        for (var i = 0; i < allTasks.length; i++) {
-            let temp: any = allTasks[i];
-            if (temp.type === 'project') continue
+        for (let i = 0; i < allTasks.length; i++) {
+            let temp: Task = allTasks[i];
+            if (temp.type === 'project') continue;
             _departments.push(temp.data.department)
         }
         _departments = [...Array.from(new Set(_departments))];
@@ -87,12 +87,11 @@ export default function Gantt() {
     // }, [collapsedProj, getProjects, getTasks]);
 
 
-    const handleExpanderClick = (task: Task | String) => {
-        let target: Task;
+    const handleExpanderClick = (task: Task | string) => {
+        let target: Task | string;
         if (typeof task === 'string') {
             target = allTasks.filter((t) => t.id === task)[0];
         } else {
-            // @ts-ignore
             target = task;
         }
 
@@ -114,15 +113,15 @@ export default function Gantt() {
         setCurTask(target);
     };
 
-    const changeDepartments = (selectedList: any) => {
+    const changeDepartments = (selectedList: string[]) => {
         setSelectedDepartments(selectedList);
         setSearchString('');
         setSearchData(null);
-    }
+    };
 
     const getDepartmentTasks = (): Task[] => {
         const isDepEmpty = selectedDepartments.length === 0;
-        if (isDepEmpty && !searchString) return getProjects();
+        if (isDepEmpty && !searchString) return allTasks;
         if (isDepEmpty) return allTasks;
 
         let searchTasks: Task[] = allTasks;
@@ -135,18 +134,18 @@ export default function Gantt() {
         searchTasks = searchTasks.filter(searchDepartment);
         searchTasks = tasksWithProj(searchTasks);
         return searchTasks;
-    }
+    };
 
     const searchTaskName = (searchInput: string) => {
         if (!searchInput) return;
 
         const searchArray = searchInput.replace(/\s\s+/g, ' ').split(' ');
         setDisplayTasks(loadData(searchArray));
-    }
+    };
 
     function tasksWithProj(searchTasks: Task[]) {
-        let searchTaskId: any[] = [];
-        let searchProjId: any[] = [];
+        const searchTaskId: any = [];
+        const searchProjId: any = [];
 
         for (let i = 0; i < searchTasks.length; ++i) {
             if (!searchProjId.includes(searchTasks[i].project)) {
@@ -155,7 +154,7 @@ export default function Gantt() {
             searchTaskId.push(searchTasks[i].id)
         }
 
-        let searchProj = allTasks.filter(p =>
+        const searchProj = allTasks.filter(p =>
             searchProjId.includes(p.id) && !searchTaskId.includes(p.id)
         );
         Array.prototype.push.apply(searchTasks, searchProj);
@@ -187,12 +186,14 @@ export default function Gantt() {
             start,
             end: isSame ? new Date() : end
         });
-    }
+    };
 
     const startYear = new Date(displayedDate.start).getFullYear();
     const endYear = new Date(displayedDate.end || new Date(maxDataYear, 0)).getFullYear();
     const ceStartYear = startYear + 1911;
     const ceEndYear = endYear + 1911;
+
+    console.log(displayTasks);
 
     // TODO: 剩餘Bug為無法將搜尋結果與部會選項結合，以及進行搜尋選擇時部會選項不會初始化
     //       試過在resetDisplayedTask放入setSelectedDepartments([])，但會因為各種effect連動的關係導致搜尋結果跳掉
@@ -301,7 +302,6 @@ export default function Gantt() {
                                                         end,
                                                         start_date: `${ceStartYear}-1-1`,
                                                         duration: new Date(ceStartYear, 0)
-                                                            // @ts-ignore
                                                             .diffYear(new Date(ceEndYear, 0))
                                                     }
                                                 } else {
@@ -311,7 +311,6 @@ export default function Gantt() {
                                                         start,
                                                         end,
                                                         start_date: `${start.getFullYear()}-1-1`,
-                                                        // @ts-ignore
                                                         duration: start.diffYear(end)
                                                     }
                                                 }
