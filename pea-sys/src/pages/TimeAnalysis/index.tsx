@@ -40,7 +40,6 @@ export default function TimeAnalysis() {
         projectTasks.map((proj) => {
             return {
                 name: String(proj.name),
-                //@ts-ignore
                 data: proj.data.series
             };
         })

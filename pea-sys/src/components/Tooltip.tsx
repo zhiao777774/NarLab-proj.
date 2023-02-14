@@ -35,7 +35,6 @@ export const Tooltip: React.FC<{ task: Task; type?: string; }> = ({task, type = 
             <Row className={styles.tooltipContainer}>
                 <Col>
                     {
-                        // @ts-ignore
                         !isProject ? <p>{task.start.toRepublicYear().getFullYear()}年度: {task.name}</p> : null
                     }
                     <Chart className={styles.barChart} type="bar" options={config.options}

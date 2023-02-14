@@ -33,10 +33,10 @@ export default class GanttChart extends Component {
         this.event.onTemplatesReady = gantt.attachEvent('onTemplatesReady', () => {
             // 顯示年份在標題
             gantt.templates.date_scale = function (date) {
-                const y = date.toRepublicYear().getFullYear() + '年';
+                const y = date.toRepublicYear().getFullYear();
                 const cy = '<div style="color: black; font-weight: 600; font-size:0.9em; height:15px; line-height:15px;">'
                     + y + '</div>';
-                return '<div style="padding:10px 0; background-color: rgba(53, 50, 30, 0.5)">' + cy + '</div>';
+                return '<div style="padding:10px 0; background-color: rgba(53, 50, 30, 0.5);">' + cy + '</div>';
             }
         });
 

@@ -1,6 +1,6 @@
 .infoPanelContainer {
     max-width: 45vw;
-    padding: 20px;
+    padding: 20px 20px 10px;
     max-height: 1800px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
     background-color: #FFF;
@@ -15,8 +15,13 @@
 .infoPanelDesp {
     text-align: left;
     background-color: #FFF;
-    padding: 5px;
+    padding: 5px 20px 5px 5px;
     height: 50vh;
     overflow-y: scroll;
     white-space: pre-line;
+}
+
+.infoPanelTag {
+    padding-right: 10px;
+    overflow-y: scroll;
 }

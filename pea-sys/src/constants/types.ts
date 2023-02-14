@@ -35,3 +35,10 @@ export interface Task {
 }
 
 export type SearchType = 'basic' | 'advance' | 'auto-complete';
+
+export type AutocompleteSearchSource = {
+    [key: string]: {
+        text: string,
+        selected: boolean
+    };
+};

@@ -5,7 +5,7 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import {AiFillExclamationCircle} from 'react-icons/ai';
 import {Autocomplete, AutocompleteResourceItem} from './Autocomplete';
 import {advanceFormCMPT, conditionOperator, conditionType, CondTypeMapping} from '../constants/searchFormElements';
-import {SearchType} from '../constants/types';
+import {AutocompleteSearchSource, SearchType} from '../constants/types';
 import {SearchDataContext} from '../helpers/contexts';
 import {loadKeywords} from '../utils/dataLoader';
 import styles from './SearchForm.module.css';
@@ -17,7 +17,7 @@ export const SearchForm = forwardRef<any, { searchType: SearchType }>(
         const [searchString, setSearchString] = useState<string[]>(advanceFormCMPT[0].map(() => ''));
         const [condOperatorSelected, setCondOperatorSelected] = useState<string[]>(advanceFormCMPT[0].map(() => conditionOperator[0]));
         const [condTypeSelected, setCondTypeSelected] = useState<string[]>(advanceFormCMPT[0].map(() => conditionType[0]));
-        const [searchSelected, setSearchSelected] = useState<any>({
+        const [searchSelected, setSearchSelected] = useState<AutocompleteSearchSource>({
             name: {
                 text: '計畫名稱',
                 selected: true
@@ -139,9 +139,9 @@ export const SearchForm = forwardRef<any, { searchType: SearchType }>(
                                                         <DropdownList config={{
                                                             id: `condition-operator-${i}`,
                                                             title: condOperatorSelected[i],
-                                                            onSelected: (key: string) => {
+                                                            onSelected: (eventKey: string) => {
                                                                 const temp = [...condOperatorSelected];
-                                                                temp[i] = key;
+                                                                temp[i] = eventKey;
                                                                 setCondOperatorSelected(temp);
                                                             }
                                                         }} items={conditionOperator}/>
@@ -163,9 +163,9 @@ export const SearchForm = forwardRef<any, { searchType: SearchType }>(
                                                 <DropdownList config={{
                                                     id: `condition-type-${i}`,
                                                     title: condTypeSelected[i],
-                                                    onSelected: (key: string) => {
+                                                    onSelected: (eventKey: string) => {
                                                         const temp = [...condTypeSelected];
-                                                        temp[i] = key;
+                                                        temp[i] = eventKey;
                                                         setCondTypeSelected(temp);
                                                     }
                                                 }} items={conditionType}/>
@@ -256,7 +256,13 @@ export const SearchForm = forwardRef<any, { searchType: SearchType }>(
     }
 );
 
-const DropdownList: React.FC<{ config: any; items: string[]; }> =
+
+type DropdownListConfig = {
+    id: string;
+    title: string;
+    onSelected: any;
+};
+const DropdownList: React.FC<{ config: DropdownListConfig; items: string[]; }> =
     ({config, items}) => {
         return (
             <DropdownButton id={config.id} title={config.title + ' '} onSelect={config.onSelected}

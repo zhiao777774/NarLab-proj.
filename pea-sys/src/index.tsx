@@ -4,18 +4,9 @@ import {BrowserRouter, HashRouter} from 'react-router-dom';
 import {ProSidebarProvider} from 'react-pro-sidebar';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import {diffDay, diffYear, toRepublicYear, toCE} from './utils/date';
+import './extensions';
 import './index.css';
 
-
-// @ts-ignore
-Date.prototype.diffDay = diffDay;
-// @ts-ignore
-Date.prototype.diffYear = diffYear;
-// @ts-ignore
-Date.prototype.toRepublicYear = toRepublicYear;
-// @ts-ignore
-Date.prototype.toCE = toCE;
 
 ReactDOM.render(
     <React.StrictMode>

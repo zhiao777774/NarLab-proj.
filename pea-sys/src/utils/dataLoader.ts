@@ -1,5 +1,5 @@
 import category from '../constants/category';
-import {Task} from '../constants/types';
+import {AutocompleteSearchSource, Task} from '../constants/types';
 import {numberRange} from './range';
 import {AutocompleteResourceItem} from '../components/Autocomplete';
 
@@ -23,9 +23,7 @@ export function loadData(condition: Array<any> | null = null): Task[] {
     const tasks: Task[] = [];
     const yearRange = numberRange(103, 110, true);
     for (let i = 0; i < category.length; ++i) {
-        // @ts-ignore
         const start = new Date(103, 0, 1).toCE();
-        // @ts-ignore
         const end = new Date(110, 0, 1).toCE();
 
         const temp = {
@@ -52,9 +50,8 @@ export function loadData(condition: Array<any> | null = null): Task[] {
     for (let i = 0; i < projectData.length; ++i) {
         const proj = projectData[i];
         if (!proj.code) continue;
-        // @ts-ignore
+
         const start = new Date(proj.startDate, 0, 1).toCE();
-        // @ts-ignore
         const end = new Date(proj.endDate, 0, 1).toCE();
 
         // TODO: 目前多標籤只取第一個，可能要做修改
@@ -99,17 +96,13 @@ function filter(tasks: Task[], condition: Array<any> | null = null) {
     if (!condition) return tasks;
 
     let tempTasks = [...tasks];
-    // @ts-ignore
     if (typeof condition[0] === 'string') {
         return tempTasks.filter((task) => {
             return task.type === 'project' ||
                 condition.some((s: string) => {
                     return task.name.includes(s) ||
-                        // @ts-ignore
                         task.data.description.includes(s) ||
-                        // @ts-ignore
                         (task.data.keyword && task.data.keyword.includes(s)) ||
-                        // @ts-ignore
                         task.data.category.includes(s);
                 });
         });
@@ -167,12 +160,11 @@ function filter(tasks: Task[], condition: Array<any> | null = null) {
     return datasets;
 }
 
-export function loadKeywords(searchSelected: object): AutocompleteResourceItem[] {
+export function loadKeywords(searchSelected: AutocompleteSearchSource): AutocompleteResourceItem[] {
     const projectData = require('../data/revised/dataset.json');
     const catProb = require('../data/revised/category_probability.json');
     const keywords: AutocompleteResourceItem[] = [];
 
-    // @ts-ignore
     if (searchSelected.name.selected) {
         const keywordsByName = Array.from(new Set(
             projectData.flatMap((proj: { name: string }) => {
@@ -187,7 +179,6 @@ export function loadKeywords(searchSelected: object): AutocompleteResourceItem[]
         keywords.push(...keywordsByName);
     }
 
-    // @ts-ignore
     if (searchSelected.category.selected) {
         const keywordsByCategory = Array.from(new Set(
             projectData.flatMap((proj: { code: string }) => {
