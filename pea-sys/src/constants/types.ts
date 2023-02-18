@@ -29,10 +29,14 @@ export interface Task {
     readonly type: TaskType;
     progress: number;
     color: string;
-    readonly data: TaskData;
+    readonly data: TaskData | any;
     project?: string;
     parent?: string;
-    isOpen?: boolean;
+}
+
+export interface Project extends Task {
+    isOpen: boolean;
+    render: string;
 }
 
 export type SearchType = 'basic' | 'advance' | 'auto-complete';
