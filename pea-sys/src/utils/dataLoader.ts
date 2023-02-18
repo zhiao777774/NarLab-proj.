@@ -54,9 +54,9 @@ export function loadData(condition: Array<any> | null = null): Task[] {
             text: projectName,
             id: `proj_${j}`,
             level: 2,
-            type: 'project',
+            type: 'task',
             color: TASK_COLOR,
-            render: 'split',
+            //render: 'split',
             data: []
         } as Project;
 
@@ -76,6 +76,8 @@ export function loadData(condition: Array<any> | null = null): Task[] {
                 project['parent'] = parent;
                 project['start'] = start;
                 project['start_date'] = `${start.getFullYear()}-1-1`;
+            } else if (i === projectData[projectName].length - 1) {
+                project['duration'] = end.diffYear(start);
             }
 
             const task = {

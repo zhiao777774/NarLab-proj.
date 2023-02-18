@@ -54,7 +54,7 @@ export default function Gantt() {
         for (let i = 0; i < allTasks.length; i++) {
             let temp: Task = allTasks[i];
             if (temp.type === 'project') continue;
-            _departments.push(temp.data.department)
+            _departments.push(temp.data.department || temp.data[0].data.department); // TODO: 針對部會過濾設定條件
         }
         _departments = [...Array.from(new Set(_departments))];
         _departments = _departments.sort();
@@ -127,9 +127,10 @@ export default function Gantt() {
         let searchTasks: Task[] = allTasks;
 
         function searchDepartment(task: Task) {
-            if (task.type === 'task') {
+            /*if (task.type === 'task') {
                 return selectedDepartments.includes(task.data.department);
-            } else if (task.level === 2) {
+            } else */
+            if (task.level === 2) {
                 return selectedDepartments.includes(task.data[0].data.department); // TODO: 只看第一筆計畫的部會是否相符
             }
 
@@ -298,16 +299,13 @@ export default function Gantt() {
                                                     )
                                             }).map((t) => {
                                                 if (t.level === 1) {
-                                                    const {start, end, ...data} = t;
                                                     return {
-                                                        ...data,
-                                                        start,
-                                                        end,
+                                                        ...t,
                                                         start_date: `${ceStartYear}-1-1`,
                                                         duration: new Date(ceStartYear, 0)
                                                             .diffYear(new Date(ceEndYear, 0))
-                                                    }
-                                                } else if (t.level === 3) {
+                                                    };
+                                                } else {
                                                     const {start, end, ...data} = t;
                                                     return {
                                                         ...data,
@@ -315,14 +313,7 @@ export default function Gantt() {
                                                         end,
                                                         start_date: `${start.getFullYear()}-1-1`,
                                                         duration: start.diffYear(end)
-                                                    }
-                                                }
-
-                                                const {start, end, ...data} = t;
-                                                return {
-                                                    ...data,
-                                                    start,
-                                                    start_date: `${start.getFullYear()}-1-1`,
+                                                    };
                                                 }
                                             })}
                                             projects={getProjects()}
