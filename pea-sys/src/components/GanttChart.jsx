@@ -193,7 +193,7 @@ export default class GanttChart extends Component {
                     style={{width: '1330px', height: '620px', overflow: 'scroll'}}
                 />
                 {
-                    display && tooltip.level !== 2 ?
+                    display ?
                         <div style={{
                             position: 'absolute',
                             left: tooltip.x + 'px',
