@@ -6,7 +6,8 @@ import styles from './Tooltip.module.css';
 
 export const Tooltip: React.FC<{ task: Task; type?: string; }> = ({task, type = task.type}) => {
     const [phase, setPhase] = useState<number>(0);
-    const isProject = (type === 'project');
+    // const isProject = (type === 'project');
+    const isProject = (task.level === 1);
     const config: any = {
         options: {
             chart: {
