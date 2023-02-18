@@ -127,8 +127,13 @@ export default function Gantt() {
         let searchTasks: Task[] = allTasks;
 
         function searchDepartment(task: Task) {
-            if (task.type !== 'task') return false;
-            return selectedDepartments.includes(task.data.department);
+            if (task.type === 'task') {
+                return selectedDepartments.includes(task.data.department);
+            } else if (task.level === 2) {
+                return selectedDepartments.includes(task.data[0].data.department); // TODO: 只看第一筆計畫的部會是否相符
+            }
+
+            return false;
         }
 
         searchTasks = searchTasks.filter(searchDepartment);
@@ -287,7 +292,7 @@ export default function Gantt() {
                                 (displayTasks.length === 0 ? "empty" :
                                         <GanttChart
                                             tasks={displayTasks.filter((t) => {
-                                                return t.level === 1 ||
+                                                return t.type === 'project' ||
                                                     (
                                                         t.start >= new Date(ceStartYear, 0)
                                                     )
@@ -317,7 +322,6 @@ export default function Gantt() {
                                                 return {
                                                     ...data,
                                                     start,
-                                                    end,
                                                     start_date: `${start.getFullYear()}-1-1`,
                                                 }
                                             })}

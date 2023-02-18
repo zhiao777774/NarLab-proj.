@@ -24,8 +24,6 @@ export default class GanttChart extends Component {
     renderChart(tasks = this.props.tasks, init) {
         const {startYear, endYear, clickEvent, projects} = this.props;
 
-        console.log(tasks)
-
         gantt.plugins({tooltip: false});
         gantt.templates.tooltip_text = function (start, end, task) {
             return `<div>${task.type === 'task' ? (task.start.toRepublicYear().getFullYear() + '年度:') : ''} ${task.name}</div>`;
@@ -141,7 +139,7 @@ export default class GanttChart extends Component {
         gantt.config.show_grid = false;
         gantt.config.readonly = true;
         gantt.config.open_tree_initially = false;
-        gantt.config.open_split_tasks = false;
+        gantt.config.open_split_tasks = true;
 
         gantt.config.scale_unit = 'year';
         gantt.config.date_format = '%Y-%m-%d';

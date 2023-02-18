@@ -60,54 +60,6 @@ export function loadData(condition: Array<any> | null = null): Task[] {
             data: []
         } as Project;
 
-        projectData[projectName].forEach((proj: any, i: number) => {
-            if (!proj.code || !proj.code.trim()) return;
-
-            const start = new Date(proj.startDate, 0, 1).toCE();
-            const end = new Date(proj.endDate, 0, 1).toCE();
-
-            // TODO: 目前多標籤只取第一個，可能要做修改
-            const catIndex = category.indexOf(proj.category.split(';')[0]);
-            const parent = `main_${catIndex}`;
-
-            if (!i) {
-                project['project'] = parent;
-                project['parent'] = parent;
-                project['start'] = start;
-                project['start_date'] = `${start.getFullYear()}-1-1`;
-            }
-
-            const task = {
-                start,
-                end,
-                start_date: `${start.getFullYear()}-1-1`,
-                duration: end.diffYear(start),
-                name: proj.name,
-                text: proj.name,
-                id: `proj_${j}_${i}`,
-                level: 3,
-                type: 'task',
-                project: `proj_${j}`,
-                parent: `proj_${j}`,
-                progress: 1,
-                color: TASK_COLOR,
-                data: {
-                    keyword: proj.chineseKeyword,
-                    tfidf: {
-                        ...tfIdf[proj.code].tfidf
-                    },
-                    description: proj.description.replaceAll('_x000D_', '\n'),
-                    department: proj.department,
-                    // 目前只取前三高的類別與機率
-                    category: catProb[proj.code]['predictCategoryTop5'].split(';').slice(0, 3),
-                    categoryProb: catProb[proj.code]['predictProbabilityTop5'].split(';').slice(0, 3)
-                        .map((prob: string) => Number(prob))
-                }
-            } as Task;
-
-            project.data.push(task);
-        });
-
         for (let i = 0; i < projectData[projectName].length; ++i) {
             const proj = projectData[projectName][i];
             if (!proj.code || proj.code === ' ') continue;
@@ -162,47 +114,6 @@ export function loadData(condition: Array<any> | null = null): Task[] {
             project.data.forEach((t: Task) => tasks.push(t));
         }
     });
-
-    // for (let i = 0; i < projectData.length; ++i) {
-    //     const proj = projectData[i];
-    //     if (!proj.code) continue;
-    //
-    //     const start = new Date(proj.startDate, 0, 1).toCE();
-    //     const end = new Date(proj.endDate, 0, 1).toCE();
-    //
-    //     // TODO: 目前多標籤只取第一個，可能要做修改
-    //     const catIndex = category.indexOf(proj.category.split(';')[0]);
-    //     const parent = `main_${catIndex}`;
-    //     const project = {
-    //         start,
-    //         end,
-    //         start_date: `${start.getFullYear()}-1-1`,
-    //         duration: end.diffYear(start),
-    //         name: proj.name,
-    //         text: proj.name,
-    //         id: `proj_${i}`,
-    //         level: 3,
-    //         type: 'task',
-    //         project: parent,
-    //         parent,
-    //         progress: 1,
-    //         color: TASK_COLOR,
-    //         data: {
-    //             keyword: proj.chineseKeyword,
-    //             tfidf: {
-    //                 ...tfIdf[proj.code].tfidf
-    //             },
-    //             description: proj.description.replaceAll('_x000D_', '\n'),
-    //             department: proj.department,
-    //             // 目前只取前三高的類別與機率
-    //             category: catProb[proj.code]['predictCategoryTop5'].split(';').slice(0, 3),
-    //             categoryProb: catProb[proj.code]['predictProbabilityTop5'].split(';').slice(0, 3)
-    //                 .map((prob: string) => Number(prob))
-    //         }
-    //     } as Task;
-    //
-    //     tasks.push(project);
-    // }
 
     return filter(tasks, condition);
 }
@@ -368,6 +279,7 @@ function filter(tasks: Task[], condition: Array<any> | null = null) {
                 } else if (operator === 'not') {
                     return !target.includes(text);
                 }
+                return false;
             });
         });
 
