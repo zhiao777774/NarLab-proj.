@@ -6,7 +6,7 @@ import {InfoPanel} from '../../components/InfoPanel';
 import GanttChart from '../../components/GanttChart';
 import {loadData} from '../../utils/dataLoader';
 import {SearchPopupPanelContext, SearchDataContext} from '../../helpers/contexts';
-import {Task} from '../../constants/types';
+import {Project, Task} from '../../constants/types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import tw from 'date-fns/locale/zh-TW';
@@ -36,7 +36,7 @@ export default function Gantt() {
         return allTasks.filter((t) => t.type === 'project');
     }, [allTasks]);
 
-    const getTasksByProject = useCallback((project: Task): Task[] => {
+    const getTasksByProject = useCallback((project: Project): Task[] => {
         const tasks = [];
         if (project !== undefined) {
             for (let i = 0; i < allTasks.length; i++) {
@@ -121,7 +121,7 @@ export default function Gantt() {
 
     const getDepartmentTasks = (): Task[] => {
         const isDepEmpty = selectedDepartments.length === 0;
-        if (isDepEmpty && !searchString) return getProjects(); // TODO: 會影響第一次與重置後的資料
+        if (isDepEmpty && !searchString) return getProjects().filter((t) => t.level === 1); // TODO: 會影響第一次與重置後的資料
         if (isDepEmpty) return allTasks;
 
         let searchTasks: Task[] = allTasks;
@@ -169,7 +169,7 @@ export default function Gantt() {
         //     setDisplayTasks(getProjects());
         // }
         setSelectedDepartments([]);
-        setDisplayTasks(getProjects()); // TODO: 會影響第一次與重置後的資料
+        setDisplayTasks(getProjects().filter((t) => t.level === 1)); // TODO: 會影響第一次與重置後的資料
     };
 
     const handleDateChange = (dates: any) => {
@@ -287,12 +287,12 @@ export default function Gantt() {
                                 (displayTasks.length === 0 ? "empty" :
                                         <GanttChart
                                             tasks={displayTasks.filter((t) => {
-                                                return t.type === 'project' ||
+                                                return t.level === 1 ||
                                                     (
                                                         t.start >= new Date(ceStartYear, 0)
                                                     )
                                             }).map((t) => {
-                                                if (t.type === 'project') {
+                                                if (t.level === 1) {
                                                     const {start, end, ...data} = t;
                                                     return {
                                                         ...data,
@@ -302,7 +302,7 @@ export default function Gantt() {
                                                         duration: new Date(ceStartYear, 0)
                                                             .diffYear(new Date(ceEndYear, 0))
                                                     }
-                                                } else {
+                                                } else if (t.level === 3) {
                                                     const {start, end, ...data} = t;
                                                     return {
                                                         ...data,
@@ -311,6 +311,14 @@ export default function Gantt() {
                                                         start_date: `${start.getFullYear()}-1-1`,
                                                         duration: start.diffYear(end)
                                                     }
+                                                }
+
+                                                const {start, end, ...data} = t;
+                                                return {
+                                                    ...data,
+                                                    start,
+                                                    end,
+                                                    start_date: `${start.getFullYear()}-1-1`,
                                                 }
                                             })}
                                             projects={getProjects()}
@@ -327,7 +335,7 @@ export default function Gantt() {
 
             <span>
                     {
-                        (curTask != null && curTask.type === "task") ?
+                        (curTask != null && /*curTask.type === "task" || */curTask.level === 2) ?
                             <InfoPanel
                                 task={curTask}
                                 setCurTask={setCurTask}

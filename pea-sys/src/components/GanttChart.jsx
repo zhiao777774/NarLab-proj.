@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
 import {gantt} from 'dhtmlx-gantt';
 import {Tooltip} from './Tooltip';
+import {loadDataByCategory} from '../utils/dataLoader';
 import {SidebarCollapsedContext} from '../helpers/contexts';
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
-import {loadData, loadDataByCategory} from "../utils/dataLoader";
 
 export default class GanttChart extends Component {
     static contextType = SidebarCollapsedContext;
@@ -24,6 +24,8 @@ export default class GanttChart extends Component {
     renderChart(tasks = this.props.tasks, init) {
         const {startYear, endYear, clickEvent, projects} = this.props;
 
+        console.log(tasks)
+
         gantt.plugins({tooltip: false});
         gantt.templates.tooltip_text = function (start, end, task) {
             return `<div>${task.type === 'task' ? (task.start.toRepublicYear().getFullYear() + '年度:') : ''} ${task.name}</div>`;
@@ -43,26 +45,19 @@ export default class GanttChart extends Component {
 
         this.event.onTaskClick = gantt.attachEvent('onTaskClick', (id) => {
             if (id.startsWith('main_')) {
-                const tmpTask = tasks.filter((t) => t.id === id)[0];
-
-                let hasChild = false;
-                gantt.eachTask((t) => {
-                    if (t) hasChild = true;
-                }, id);
-
-                if (tmpTask.isOpen) {
-                    tmpTask.isOpen = false;
+                const project = tasks.filter((t) => t.id === id)[0];
+                const hasChildren = gantt.getChildren(id).length > 0;
+                if (project.isOpen) {
+                    project.isOpen = false;
                     gantt.close(id);
                 } else {
-                    tmpTask.isOpen = true;
-
-                    if (!hasChild) {
-                        const children = loadDataByCategory(tmpTask.name);
+                    project.isOpen = true;
+                    if (!hasChildren) {
+                        const children = loadDataByCategory(project.name);
                         children.forEach((t) => {
                             gantt.addTask(t, t.parent);
                         });
                     }
-
                     gantt.open(id);
                 }
             }
@@ -146,6 +141,7 @@ export default class GanttChart extends Component {
         gantt.config.show_grid = false;
         gantt.config.readonly = true;
         gantt.config.open_tree_initially = false;
+        gantt.config.open_split_tasks = false;
 
         gantt.config.scale_unit = 'year';
         gantt.config.date_format = '%Y-%m-%d';
@@ -199,7 +195,7 @@ export default class GanttChart extends Component {
                     style={{width: '1330px', height: '620px', overflow: 'scroll'}}
                 />
                 {
-                    display ?
+                    display && tooltip.level !== 2 ?
                         <div style={{
                             position: 'absolute',
                             left: tooltip.x + 'px',
