@@ -57,7 +57,16 @@ export default class GanttChart extends Component {
                     project.isOpen = true;
                     if (!hasChildren) {
                         const children = loadDataByCategory(project.name);
-                        children.forEach((t) => {
+                        children.map((t) => {
+                            if (t.level === 2) {
+                                const {duration, ...data} = t;
+                                return {
+                                    duration: t.data.length / 4,
+                                    ...data
+                                };
+                            }
+                            return t;
+                        }).forEach((t) => {
                             gantt.addTask(t, t.parent);
                         });
                     }

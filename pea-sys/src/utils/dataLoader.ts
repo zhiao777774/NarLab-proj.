@@ -56,7 +56,6 @@ export function loadData(condition: Array<any> | null = null): Task[] {
             level: 2,
             type: 'task',
             color: TASK_COLOR,
-            //render: 'split',
             data: []
         } as Project;
 
@@ -126,57 +125,14 @@ export function loadDataByCategory(cat: string): Task[] {
     const tfIdf = require('../data/revised/tfidf_revised.json');
 
     const tasks: Task[] = [];
-    // for (let i = 0; i < projectData.length; ++i) {
-    //     const proj = projectData[i];
-    //     if (!proj.code) continue;
-    //     if (proj.category.split(';')[0] !== cat) continue;
-    //
-    //     const start = new Date(proj.startDate, 0, 1).toCE();
-    //     const end = new Date(proj.endDate, 0, 1).toCE();
-    //
-    //     const catIndex = category.indexOf(proj.category.split(';')[0]);
-    //     const parent = `main_${catIndex}`;
-    //     const project = {
-    //         start,
-    //         end,
-    //         start_date: `${start.getFullYear()}-1-1`,
-    //         duration: end.diffYear(start),
-    //         name: proj.name,
-    //         text: proj.name,
-    //         id: `proj_${i}`,
-    //         level: 2,
-    //         type: 'task',
-    //         project: parent,
-    //         parent,
-    //         progress: 1,
-    //         color: TASK_COLOR,
-    //         data: {
-    //             keyword: proj.chineseKeyword,
-    //             tfidf: {
-    //                 ...tfIdf[proj.code].tfidf
-    //             },
-    //             description: proj.description.replaceAll('_x000D_', '\n'),
-    //             department: proj.department,
-    //             // 目前只取前三高的類別與機率
-    //             category: catProb[proj.code]['predictCategoryTop5'].split(';').slice(0, 3),
-    //             categoryProb: catProb[proj.code]['predictProbabilityTop5'].split(';').slice(0, 3)
-    //                 .map((prob: string) => Number(prob))
-    //         }
-    //     } as Task;
-    //
-    //     tasks.push(project);
-    // }
-
-
     Object.keys(projectData).forEach((p, j) => {
         const mainProject = {
             name: p,
             text: p,
             id: `proj_${j}`,
             level: 2,
-            type: 'project',
+            type: 'task',
             color: TASK_COLOR,
-            render: ' ',
             data: []
         } as Project;
 
@@ -195,6 +151,8 @@ export function loadDataByCategory(cat: string): Task[] {
                 mainProject['parent'] = parent;
                 mainProject['start'] = start;
                 mainProject['start_date'] = `${start.getFullYear()}-1-1`;
+            } else if (i === projectData[p].length - 1) {
+                mainProject['duration'] = end.diffYear(mainProject['start']);
             }
 
             const project = {
