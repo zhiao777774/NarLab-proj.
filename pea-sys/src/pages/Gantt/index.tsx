@@ -25,8 +25,12 @@ export default function Gantt() {
     const [departments, setDepartments] = useState<string[]>([]);
     const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
 
-    const minDataYear = 2014 - 1911;
-    const maxDataYear = new Date().toRepublicYear().getFullYear() + 3;
+    const minYearInData = allTasks.reduce(
+        (prev, curr) => prev.start_date < curr.start_date ? prev : curr).start;
+    const minDataYear = minYearInData.toRepublicYear().getFullYear();
+    const maxYearInData = allTasks.reduce(
+        (prev, curr) => prev.end < curr.end ? curr : prev).end;
+    const maxDataYear = maxYearInData.toRepublicYear().getFullYear();
     const [displayedDate, setDisplayedDate] = useState<{ start: Date, end: Date }>({
         start: new Date(minDataYear, 0),
         end: new Date(maxDataYear, 0)
@@ -288,7 +292,7 @@ export default function Gantt() {
                         </Row>
                     }
                     <Card.Body className="m-auto  align-self-center">
-                        <div className="p-auto" style={{width: "auto", minWidth: "100vh", maxWidth: "1350px"}}>
+                        <div className="p-auto" style={{width: "auto", minWidth: "80vw"}}>
                             {
                                 (displayTasks.length === 0 ? "empty" :
                                         <GanttChart

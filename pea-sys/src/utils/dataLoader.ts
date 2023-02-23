@@ -77,7 +77,7 @@ export function loadData(condition: Array<any> | null = null): Task[] {
                 project['start'] = start;
                 project['start_date'] = `${start.getFullYear()}-1-1`;
             } else if (i === projectData[projectName].length - 1) {
-                project['duration'] = end.diffYear(start);
+                project['duration'] = end.diffYear(project['start']);
             }
 
             const task = {
