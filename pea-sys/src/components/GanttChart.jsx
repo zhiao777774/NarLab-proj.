@@ -180,6 +180,7 @@ export default class GanttChart extends Component {
                 if (t.parent) {
                     if (!prevProject || t.parent !== prevProject.id) {
                         const parent = projects.filter((p) => p.id === t.parent)[0];
+                        if (!parent || !parent.id) return;
                         gantt.addTask({
                             isOpen: true,
                             ...parent

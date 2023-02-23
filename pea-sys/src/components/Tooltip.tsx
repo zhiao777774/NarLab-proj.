@@ -32,13 +32,14 @@ export const Tooltip: React.FC<{ task: Task; type?: string; }> = ({task, type = 
         }],
     };
 
+    console.log(task)
     return (
         <div style={{zIndex: 100, fontSize: 12}}>
             <Row className={styles.tooltipContainer}>
                 <Col>
                     {
                         !isProject ?
-                            <p>{task.data[phase].start.toRepublicYear().getFullYear()}年度: {task.name}</p> : null
+                            <p>{new Date(task.data[phase].start).toRepublicYear().getFullYear()}年度: {task.name}</p> : null
                     }
                     {
                         !isProject ?
@@ -47,7 +48,8 @@ export const Tooltip: React.FC<{ task: Task; type?: string; }> = ({task, type = 
                                     task.data.length > 1 ?
                                         <InputGroup className="mb-4 justify-content-center">
                                             {task.data.map((t: any, i: number) =>
-                                                <Button key={`${t.name}-${i}`} variant="outline-dark" size="sm" onClick={() => setPhase(i)}>
+                                                <Button key={`${t.name}-${i}`} variant="outline-dark" size="sm"
+                                                        onClick={() => setPhase(i)}>
                                                     第 {i + 1} 期
                                                 </Button>
                                             )}
