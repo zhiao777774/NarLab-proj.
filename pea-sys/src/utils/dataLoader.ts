@@ -204,6 +204,15 @@ function filter(tasks: Task[], condition: Array<any> | null = null) {
         return tempTasks.filter((task) => {
             return task.type === 'project' ||
                 condition.some((s: string) => {
+                    if (Array.isArray(task.data)) {
+                        return task.data.some((subTask: Task) => {
+                            return subTask.name.includes(s) ||
+                                subTask.data.description.includes(s) ||
+                                (subTask.data.keyword && subTask.data.keyword.includes(s)) ||
+                                subTask.data.category.includes(s);
+                        });
+                    }
+
                     return task.name.includes(s) ||
                         task.data.description.includes(s) ||
                         (task.data.keyword && task.data.keyword.includes(s)) ||
@@ -233,11 +242,23 @@ function filter(tasks: Task[], condition: Array<any> | null = null) {
                 if (task.type === 'project') return true;
 
                 //@ts-ignore
-                const target = task[type] || task.data[type];
-                if (operator === 'and') {
-                    return target.includes(text);
-                } else if (operator === 'not') {
-                    return !target.includes(text);
+                let target = task.data[type];
+                if (target) {
+                    if (operator === 'and') {
+                        return target.includes(text);
+                    } else if (operator === 'not') {
+                        return !target.includes(text);
+                    }
+                } else {
+                    return task.data.some((subTask: Task) => {
+                        //@ts-ignore
+                        target = subTask.data[type];
+                        if (operator === 'and') {
+                            return target.includes(text);
+                        } else if (operator === 'not') {
+                            return !target.includes(text);
+                        }
+                    });
                 }
                 return false;
             });
