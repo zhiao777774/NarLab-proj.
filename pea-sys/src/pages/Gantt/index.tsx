@@ -4,7 +4,7 @@ import MultiSelect from 'multiselect-react-dropdown';
 import DatePicker, {registerLocale} from 'react-datepicker';
 import {InfoPanel} from '../../components/InfoPanel';
 import GanttChart from '../../components/GanttChart';
-import {loadData} from '../../utils/dataLoader';
+import {loadData, loadDataByCategory} from '../../utils/dataLoader';
 import {SearchPopupPanelContext, SearchDataContext} from '../../helpers/contexts';
 import {Project, Task} from '../../constants/types';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -91,7 +91,7 @@ export default function Gantt() {
     // }, [collapsedProj, getProjects, getTasks]);
 
 
-    const handleExpanderClick = (task: Task | string) => {
+    const handleExpanderClick = (task: Task | string, parentId: string) => {
         let target: Task | string;
         if (typeof task === 'string') {
             target = allTasks.filter((t) => t.id === task)[0];
@@ -99,22 +99,14 @@ export default function Gantt() {
             target = task;
         }
 
-        // if (target.type === "project") {
-        //     if (collapsedProj.filter(ep => ep.id === target.id).length > 0) {
-        //         const tempid = collapsedProj.map(e => e.id);
-        //         const temp = [...collapsedProj]
-        //         let rmProjIndex = tempid.indexOf(target.id);
-        //         temp.splice(rmProjIndex, 1);
-        //         setCollapsedProj(temp);
-        //     } else {
-        //         if (!collapsedProj.includes(target)) {
-        //             const temp = [...collapsedProj];
-        //             temp.push(target);
-        //             setCollapsedProj(temp);
-        //         }
-        //     }
-        // }
         setCurTask(target);
+
+        // if(String(parentId).startsWith('main_')) {
+        //     const catName = getProjects().filter((p) => p.id === parentId)[0].name;
+        //     const children = loadDataByCategory(catName);
+        //     console.log(getProjects().concat(children))
+        //     setDisplayTasks(children);
+        // }
     };
 
     const changeDepartments = (selectedList: string[]) => {
