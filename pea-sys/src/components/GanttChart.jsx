@@ -214,7 +214,7 @@ export default class GanttChart extends Component {
                     ref={(input) => {
                         this.ganttContainer = input
                     }}
-                    style={{width: '100%', height: '620px', overflow: 'scroll'}}
+                    style={{width: '100%', height: '80vh', overflow: 'scroll'}}
                 />
                 {
                     display ?

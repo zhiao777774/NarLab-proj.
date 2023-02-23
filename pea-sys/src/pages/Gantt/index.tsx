@@ -265,8 +265,6 @@ export default function Gantt() {
                                         }
                                     }}
                                 />
-                                {/*<Button variant="dark"*/}
-                                {/*        onClick={() => changeDepartments([])}>Reset</Button>*/}
                             </Col>
                             <Col xs={5}>
                                 <InputGroup className="mb-3">
@@ -292,7 +290,7 @@ export default function Gantt() {
                         </Row>
                     }
                     <Card.Body className="m-auto  align-self-center">
-                        <div className="p-auto" style={{width: "auto", minWidth: "80vw"}}>
+                        <div className="p-auto" style={{width: 'auto', minWidth: '70vw', maxWidth: '80vw'}}>
                             {
                                 (displayTasks.length === 0 ? "empty" :
                                         <GanttChart
@@ -334,7 +332,7 @@ export default function Gantt() {
 
             <span>
                     {
-                        (curTask != null && /*curTask.type === "task" || */curTask.level === 2) ?
+                        (curTask != null && curTask.level === 2) ?
                             <InfoPanel
                                 task={curTask}
                                 setCurTask={setCurTask}
