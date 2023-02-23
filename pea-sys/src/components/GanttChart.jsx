@@ -4,6 +4,7 @@ import {Tooltip} from './Tooltip';
 import {loadDataByCategory} from '../utils/dataLoader';
 import {SidebarCollapsedContext} from '../helpers/contexts';
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
+import {lightGreen} from "@mui/material/colors";
 
 export default class GanttChart extends Component {
     static contextType = SidebarCollapsedContext;
@@ -177,6 +178,7 @@ export default class GanttChart extends Component {
                 }
                 return t;
             }).forEach((t) => {
+                const isAllProject = tasks.every((t) => t.type === 'project');
                 if (t.parent) {
                     if (!prevProject || t.parent !== prevProject.id) {
                         const parent = projects.filter((p) => p.id === t.parent)[0];
@@ -190,7 +192,16 @@ export default class GanttChart extends Component {
                     }
                     gantt.addTask(t, t.parent);
                 } else {
-                    gantt.addTask(t);
+                    if (isAllProject) {
+                        gantt.addTask(t);
+                    } else {
+                        if (t.type === 'project') {
+                            if (tasks.some((temp) => temp.parent === t.id))
+                                gantt.addTask(t);
+                        } else {
+                            gantt.addTask(t);
+                        }
+                    }
                 }
             });
         }
