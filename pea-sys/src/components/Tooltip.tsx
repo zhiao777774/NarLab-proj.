@@ -32,7 +32,6 @@ export const Tooltip: React.FC<{ task: Task; type?: string; }> = ({task, type = 
         }],
     };
 
-    console.log(task)
     return (
         <div style={{zIndex: 100, fontSize: 12}}>
             <Row className={styles.tooltipContainer}>
