@@ -13,6 +13,7 @@ export default class GanttChart extends Component {
 
         this.ganttContainer = null;
         this.activeID = null;
+        this.openPanel = false;
         this.event = {};
         this.state = {
             display: false,
@@ -42,7 +43,7 @@ export default class GanttChart extends Component {
 
             gantt.templates.task_text = function (start, end, task) {
                 if (task.level === 1) return task.text;
-                return '<span style="margin-left: 10%;">' + task.text+ '</span>';
+                return '<span style="margin-left: 10%;">' + task.text + '</span>';
             };
         });
 
@@ -72,6 +73,8 @@ export default class GanttChart extends Component {
                     }
                     gantt.open(id);
                 }
+            } else {
+                this.openPanel = true;
             }
             clickEvent(id, gantt.getParent(id));
             return false;
@@ -161,11 +164,40 @@ export default class GanttChart extends Component {
         gantt.config.duration_step = 4;
         gantt.config.row_height = 50;
 
+        // gantt.attachEvent("onBeforeTaskDisplay", (id, task) => {
+        //     const isAllProject = tasks.every((t) => t.type === 'project');
+        //     if (!isAllProject && task.id.startsWith('main_') && !gantt.hasChild(task.id)) {
+        //         return false;
+        //     }
+        //
+        //     return true;
+        // });
+
         gantt.clearAll();
         if (init) {
             gantt.init(this.ganttContainer);
             gantt.parse({data: tasks});
         } else {
+            // gantt.clearAll();
+            // gantt.parse({
+            //     data: tasks.map((t) => {
+            //         if (t.level === 2) {
+            //             const {duration, ...data} = t;
+            //             return {
+            //                 duration: t.data.length / 4,
+            //                 ...data
+            //             };
+            //         } else if (t.level === 1) {
+            //             if (tasks.some((temp) => temp.parent === t.id)) {
+            //                 return {
+            //                     ...t,
+            //                     open: true
+            //                 };
+            //             }
+            //         }
+            //         return t;
+            //     })
+            // });
             let prevProject = undefined;
             const isAllProject = tasks.every((t) => t.type === 'project');
             tasks.map((t) => {
@@ -211,9 +243,10 @@ export default class GanttChart extends Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if (prevProps.tasks !== this.props.tasks) {
+        if (!this.openPanel && prevProps.tasks !== this.props.tasks) {
             this.renderChart(this.props.tasks, false);
         }
+        this.openPanel = false;
     }
 
     render() {
