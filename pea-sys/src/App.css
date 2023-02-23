@@ -23,3 +23,7 @@ html {
 .react-datepicker__navigation-icon {
   top: 5px !important;
 }
+
+.gantt_task_content {
+  width: 90%;
+}

@@ -47,7 +47,7 @@ export const Tooltip: React.FC<{ task: Task; type?: string; }> = ({task, type = 
                                     task.data.length > 1 ?
                                         <InputGroup className="mb-4 justify-content-center">
                                             {task.data.map((t: any, i: number) =>
-                                                <Button variant="outline-dark" size="sm" onClick={() => setPhase(i)}>
+                                                <Button key={`${t.name}-${i}`} variant="outline-dark" size="sm" onClick={() => setPhase(i)}>
                                                     第 {i + 1} 期
                                                 </Button>
                                             )}

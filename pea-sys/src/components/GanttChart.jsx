@@ -38,7 +38,12 @@ export default class GanttChart extends Component {
                 const cy = '<div style="color: black; font-weight: 600; font-size:0.9em; height:15px; line-height:15px;">'
                     + y + '</div>';
                 return '<div style="padding:10px 0; background-color: rgba(53, 50, 30, 0.5);">' + cy + '</div>';
-            }
+            };
+
+            gantt.templates.task_text = function (start, end, task) {
+                if (task.level === 1) return task.text;
+                return '<span style="margin-left: 10%;">' + task.text+ '</span>';
+            };
         });
 
         this.event.onTaskClick = gantt.attachEvent('onTaskClick', (id) => {
@@ -153,7 +158,16 @@ export default class GanttChart extends Component {
             gantt.parse({data: tasks});
         } else {
             let prevProject = undefined;
-            tasks.forEach((t) => {
+            tasks.map((t) => {
+                if (t.level === 2) {
+                    const {duration, ...data} = t;
+                    return {
+                        duration: t.data.length / 4,
+                        ...data
+                    };
+                }
+                return t;
+            }).forEach((t) => {
                 if (t.parent) {
                     if (!prevProject || t.parent !== prevProject.id) {
                         const parent = projects.filter((p) => p.id === t.parent)[0];
@@ -190,7 +204,7 @@ export default class GanttChart extends Component {
                     ref={(input) => {
                         this.ganttContainer = input
                     }}
-                    style={{width: '1330px', height: '620px', overflow: 'scroll'}}
+                    style={{width: '100%', height: '620px', overflow: 'scroll'}}
                 />
                 {
                     display ?
