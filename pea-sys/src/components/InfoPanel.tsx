@@ -49,7 +49,7 @@ export const InfoPanel: React.FC<{ task: Task; setCurTask: Function; }> = ({task
                                         Keyword
                                     </Alert.Heading>
                                     <hr/>
-                                    <div className="mb-0 text-black overflow-auto" style={{maxHeight: '160px'}}>
+                                    <div className="mb-0 text-black overflow-auto">
                                         {task.data[phase].data.keyword.split(/[;,，、]/).map((kw: string, i: number) => {
                                                 if (!kw.trim()) return null;
                                                 return (
@@ -68,7 +68,7 @@ export const InfoPanel: React.FC<{ task: Task; setCurTask: Function; }> = ({task
                                 TF-IDF
                             </Alert.Heading>
                             <hr/>
-                            <div className="mb-0 text-black overflow-auto" style={{maxHeight: '160px'}}>
+                            <div className="mb-0 text-black overflow-auto">
                                 {
                                     task.data[phase].data.tfidf.CH.map((tfidf: string, i: number) =>
                                         <div key={`${task.data[phase].id}_tfidf_ch${i}`}
@@ -85,7 +85,7 @@ export const InfoPanel: React.FC<{ task: Task; setCurTask: Function; }> = ({task
                                         英文斷詞
                                     </Alert.Heading>
                                     <hr/>
-                                    <div className="mb-0 text-black overflow-auto" style={{maxHeight: '160px'}}>
+                                    <div className="mb-0 text-black overflow-auto">
                                         {
                                             task.data[phase].data.tfidf.EN.map((tfidf: string, i: number) =>
                                                 <div key={`${task.id}_tfidf_en${i}`}
