@@ -1,29 +1,34 @@
 html {
-  background: #f1f4f8 !important;
+    background: #f1f4f8 !important;
 }
+
 .App {
-  text-align: center;
-  background-color: #f1f4f8 !important;
-  height: 100vh;
-  max-height: 200vh;
+    text-align: center;
+    background-color: #f1f4f8 !important;
+    height: 100vh;
+    max-height: 200vh;
 }
 
 ._9w8d5 {
-  display:none;
+    display: none;
 }
 
 .react-datepicker__year-wrapper {
-  max-width: 160px !important;
+    max-width: 160px !important;
 }
 
 .react-datepicker__year .react-datepicker__year-text {
-  width: 3rem !important;
+    width: 3rem !important;
 }
 
 .react-datepicker__navigation-icon {
-  top: 5px !important;
+    top: 5px !important;
 }
 
-.gantt_task_content {
-  width: 90%;
+.gantt_task_content:has(.gantt-content-task) {
+    width: 90%;
+}
+
+.gantt-content-task {
+    margin-left: 10%;
 }

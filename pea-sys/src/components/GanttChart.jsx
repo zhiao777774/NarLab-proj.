@@ -42,8 +42,8 @@ export default class GanttChart extends Component {
             };
 
             gantt.templates.task_text = function (start, end, task) {
-                if (task.level === 1) return task.text;
-                return '<span style="margin-left: 10%;">' + task.text + '</span>';
+                const className = `gantt-content-${task.type}`;
+                return `<div class="${className}"><span>` + task.text + '</span></div>';
             };
         });
 
@@ -89,17 +89,19 @@ export default class GanttChart extends Component {
                 });
             }
 
-            if (id && !this.activeID && e.target.className === 'gantt_task_content') {
+            const classNames = ['gantt_task_content', 'gantt-content-project', 'gantt-content-task'];
+            if (id && !this.activeID && classNames.includes(e.target.className)) {
                 const task = gantt.getTask(id);
-                const showTask = !tasks.every(({type}) => type === 'project');
-                if (showTask && task.type === 'project') return false;
+                const hasTasks = !gantt.getTaskByTime().every(({type}) => type === 'project');
+                if (hasTasks && task.type === 'project') return false;
 
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = e.pageX - e.offsetX;
                 const y = e.pageY - e.offsetY;
                 const targetWidth = e.currentTarget.offsetWidth;
+                // `true` if sidebar collapsed otherwise
                 if (this.context) {
-                    if (showTask) {
+                    if (hasTasks) {
                         const {offsetLeft} = e.target.offsetParent;
 
                         if (e.x > window.innerWidth / 2)
@@ -115,29 +117,34 @@ export default class GanttChart extends Component {
                             task.x = x + rect.left + (e.x - window.innerWidth / 3) - 90;
                     }
                 } else {
-                    if (showTask) {
+                    if (hasTasks) {
                         const {offsetLeft} = e.target.offsetParent;
 
-                        if (e.x > targetWidth / 2)
-                            task.x = offsetLeft - rect.left + e.offsetX - 150;
+                        console.log((e.offsetX > targetWidth * (2 / 3)), (e.offsetX > targetWidth / 2), (e.offsetX > targetWidth * (1 / 3)))
+                        if (e.offsetX > targetWidth * (2 / 3))
+                            task.x = offsetLeft + rect.left + e.offsetX + 200;
+                        else if (e.offsetX > targetWidth / 2)
+                            task.x = offsetLeft - rect.left + e.offsetX - 100;
+                        else if (e.offsetX > targetWidth * (1 / 3))
+                            task.x = offsetLeft + rect.left + e.offsetX - 100;
                         else
-                            task.x = offsetLeft + rect.left + e.offsetX - 200;
+                            task.x = offsetLeft + rect.left + e.offsetX + 200;
                     } else {
                         if (e.offsetX > targetWidth * (2 / 3))
-                            task.x = x - rect.left + (e.offsetX - targetWidth * (2 / 3)) + 50;
+                            task.x = x - rect.left + (e.offsetX - targetWidth * (2 / 3)) - 50;
                         else if (e.offsetX > targetWidth * (1 / 3) && e.x > window.innerWidth / 2)
-                            task.x = x - rect.left + (e.offsetX - targetWidth * (2 / 3)) + 50;
+                            task.x = x - rect.left + (e.offsetX - targetWidth * (2 / 3)) - 50;
                         else if (e.offsetX > targetWidth * (1 / 3) && e.x <= window.innerWidth / 2)
-                            task.x = x + rect.left + (e.offsetX - targetWidth / 2) + 80;
+                            task.x = x + rect.left + (e.offsetX - targetWidth / 2) - 250;
                         else
-                            task.x = x + rect.left + (e.offsetX - targetWidth / 3) - 100;
+                            task.x = x + rect.left + (e.offsetX - targetWidth / 3) - 250;
                     }
                 }
 
                 if (y > window.innerHeight / 2)
-                    task.y = y + rect.top - (window.innerHeight / 2) - 90;
+                    task.y = y + rect.top - (window.innerHeight / 2) - 30;
                 else
-                    task.y = y - rect.top - 90;
+                    task.y = y - rect.top + 160;
 
 
                 this.activeID = id;
