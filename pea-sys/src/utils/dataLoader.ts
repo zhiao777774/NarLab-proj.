@@ -245,6 +245,8 @@ function filter(tasks: Task[], condition: Array<any> | null = null) {
                 let target = task.data[type];
                 if (target) {
                     if (operator === 'and') {
+                        if (type === 'department')
+                            return text.includes(target);
                         return target.includes(text);
                     } else if (operator === 'not') {
                         return !target.includes(text);
@@ -254,6 +256,8 @@ function filter(tasks: Task[], condition: Array<any> | null = null) {
                         //@ts-ignore
                         target = subTask.data[type];
                         if (operator === 'and') {
+                            if (type === 'department')
+                                return text.includes(target);
                             return target.includes(text);
                         } else if (operator === 'not') {
                             return !target.includes(text);
@@ -319,4 +323,14 @@ export function loadKeywords(searchSelected: AutocompleteSearchSource): Autocomp
     }
 
     return keywords;
+}
+
+export function getDepartments() {
+    const projectData = require('../data/revised/dataset.json');
+    const departments = Array.from(
+        new Set(projectData.map(({department}: { department: string }) => department))
+    );
+
+    departments.sort();
+    return departments.filter(department => department);
 }

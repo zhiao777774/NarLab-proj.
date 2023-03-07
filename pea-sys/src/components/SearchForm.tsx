@@ -3,11 +3,12 @@ import {Button, InputGroup, FormControl, Form} from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import {AiFillExclamationCircle} from 'react-icons/ai';
+import MultiSelect from 'multiselect-react-dropdown';
 import {Autocomplete, AutocompleteResourceItem} from './Autocomplete';
 import {advanceFormCMPT, conditionOperator, conditionType, CondTypeMapping} from '../constants/searchFormElements';
 import {AutocompleteSearchSource, SearchType} from '../constants/types';
 import {SearchDataContext} from '../helpers/contexts';
-import {loadKeywords} from '../utils/dataLoader';
+import {getDepartments, loadKeywords} from '../utils/dataLoader';
 import styles from './SearchForm.module.css';
 
 export const SearchForm = forwardRef<any, { searchType: SearchType }>(
@@ -27,8 +28,10 @@ export const SearchForm = forwardRef<any, { searchType: SearchType }>(
                 selected: true
             }
         });
-        const searchKeywords: AutocompleteResourceItem[] = loadKeywords(searchSelected);
+        const departments = getDepartments();
+        const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
 
+        const searchKeywords: AutocompleteResourceItem[] = loadKeywords(searchSelected);
         const search = (event: any) => {
             event.preventDefault();
 
@@ -56,6 +59,15 @@ export const SearchForm = forwardRef<any, { searchType: SearchType }>(
                             });
                         }
                     });
+
+                    if (selectedDepartments.length) {
+                        keyword.push({
+                            text: selectedDepartments,
+                            type: 'department',
+                            operator: 'and'
+                        });
+                    }
+
                     setSearchData(keyword);
                     break;
                 }
@@ -199,6 +211,19 @@ export const SearchForm = forwardRef<any, { searchType: SearchType }>(
                                         }}>
                                     移除條件
                                 </Button>
+                                <div className="mt-3" style={{fontSize: '0.875rem'}}>
+                                    <MultiSelect
+                                        options={departments}
+                                        isObject={false}
+                                        showCheckbox={true}
+                                        showArrow={true}
+                                        selectedValues={selectedDepartments}
+                                        onSelect={(selectedList) => setSelectedDepartments(selectedList)}
+                                        onRemove={(selectedList) => setSelectedDepartments(selectedList)}
+                                        placeholder={selectedDepartments.length ? "選擇更多部會" : "未選擇部會"}
+                                        emptyRecordMsg="找不到部會"
+                                    />
+                                </div>
                             </div>
                             <div className="flex-col flex flex-wrap">
                                 {
