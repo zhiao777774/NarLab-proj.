@@ -45,6 +45,6 @@ combined_data['endDate'] = end_dates
 combined_data = combined_data.dropna()
 combined_data = combined_data.astype({'startDate': 'int64', 'endDate': 'int64'})
 
-with open(f'{nar.util.XML_PATH}/dataset_combine2.json', 'w', encoding='UTF-8') as f:
+with open(f'{nar.util.XML_PATH}/dataset_combine.json', 'w', encoding='UTF-8') as f:
     json.dump(combined_data.groupby(level=0).apply(
         lambda x: x.to_dict('records')).to_dict(), f, ensure_ascii=False)
