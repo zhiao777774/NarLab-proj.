@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import {useParams, useNavigate} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
-import {RouterMap} from '../../constants/route';
+import {BERTopicFigureMap, RouterMap} from '../../constants/route';
 
 export default function BERTopic() {
     const {figId = RouterMap.BERTopic[0]} = useParams();
@@ -12,8 +12,8 @@ export default function BERTopic() {
 
     const style = {
         [RouterMap.BERTopic[0]]: {
-            width: 1050,
-            height: 550
+            width: 1300,
+            height: 700
         },
         [RouterMap.BERTopic[1]]: {
             width: 1050,
@@ -21,7 +21,7 @@ export default function BERTopic() {
         },
         [RouterMap.BERTopic[2]]: {
             width: 1050,
-            height: 700
+            height: 600
         }
     };
 
@@ -37,7 +37,7 @@ export default function BERTopic() {
     return (
         <div style={{margin: 'auto', backgroundColor: 'white'}}>
             <iframe
-                src={process.env.PUBLIC_URL + '/' + figure + '.html'}
+                src={process.env.PUBLIC_URL + '/' + BERTopicFigureMap[figure as keyof typeof BERTopicFigureMap] + '.html'}
                 width={figContainerWidth}
                 height={figContainerHeight}
             />
