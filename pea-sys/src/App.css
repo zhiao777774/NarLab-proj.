@@ -32,3 +32,11 @@ html {
 .gantt-content-task {
     margin-left: 10%;
 }
+
+.gantt-content-project.gantt-expanded:after {
+    content: ' \25BE';
+}
+
+.gantt-content-project.gantt-collapsed:after {
+    content: ' \25B8';
+}

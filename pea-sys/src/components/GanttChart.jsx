@@ -43,6 +43,11 @@ export default class GanttChart extends Component {
 
             gantt.templates.task_text = function (start, end, task) {
                 const className = `gantt-content-${task.type}`;
+
+                if (task.type === 'project') {
+                    if (task.$open) return `<div class="${className} gantt-expanded"><span>` + task.text + '</span></div>';
+                    return `<div class="${className} gantt-collapsed"><span>` + task.text + '</span></div>';
+                }
                 return `<div class="${className}"><span>` + task.text + '</span></div>';
             };
         });
@@ -51,7 +56,7 @@ export default class GanttChart extends Component {
             if (id.startsWith('main_')) {
                 const project = tasks.filter((t) => t.id === id)[0];
                 const hasChildren = gantt.getChildren(id).length > 0;
-                if (project.isOpen) {
+                if (project.isOpen || project.$open) {
                     project.isOpen = false;
                     gantt.close(id);
                 } else {
