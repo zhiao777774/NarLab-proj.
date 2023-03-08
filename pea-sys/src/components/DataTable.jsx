@@ -203,8 +203,6 @@ export default class DataTable extends Component {
                                 const record = JSON.parse(JSON.stringify(editRecord));
                                 if (editing) record[id] ||= category;
 
-                                console.log(id, editRecord[id])
-
                                 return (
                                     <tr key={id} className={((idx % 2) ? 'bg-secondary bg-opacity-25' : 'bg-white')}>
                                         <td className="p-3 text-left" style={{width: '5vw'}}>
