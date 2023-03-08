@@ -21,8 +21,6 @@ export default class DataTable extends Component {
 
         this.data = this.props.dataset;
         this.dataSize = this.data.length;
-        this.editRecord = {};
-
         this.state = {
             start: 0,
             end: 100 <= this.dataSize ? 99 : this.dataSize - 1,
@@ -32,7 +30,8 @@ export default class DataTable extends Component {
             asc: false,
             curTask: null,
             editedID: null,
-            editRecord: {}
+            editRecord: {},
+            oriRecord: {}
         };
     }
 
@@ -97,7 +96,8 @@ export default class DataTable extends Component {
     };
 
     render() {
-        const {start, end, pageSize, page, orderby, asc, curTask, editedID} = this.state;
+        const {start, end, pageSize, page, orderby, asc} = this.state;
+        const {curTask, editedID, editRecord, oriRecord} = this.state;
         const pageSizes = [100, 50, 20];
         const pageable = this.dataSize / pageSize > 1;
         const lastPageNumber = Math.ceil(this.dataSize / pageSize);
@@ -200,8 +200,10 @@ export default class DataTable extends Component {
                                 const {id, name, start, data} = datasetInfo;
                                 const {category} = data;
                                 const editing = editedID === id;
-                                if (editing)
-                                    this.editRecord[id] = this.editRecord[id] || category;
+                                const record = JSON.parse(JSON.stringify(editRecord));
+                                if (editing) record[id] ||= category;
+
+                                console.log(id, editRecord[id])
 
                                 return (
                                     <tr key={id} className={((idx % 2) ? 'bg-secondary bg-opacity-25' : 'bg-white')}>
@@ -225,23 +227,23 @@ export default class DataTable extends Component {
                                                         editing ?
                                                             <InputGroup>
                                                                 {
-                                                                    category.map((name, i) =>
+                                                                    (editRecord[id] || category).map((name, i) =>
                                                                         <FormControl
                                                                             size="sm"
                                                                             key={`${id}-cat-edited-${i}}`}
                                                                             className="me-2"
                                                                             style={{maxWidth: '150px'}}
-                                                                            value={this.editRecord[id][i]}
+                                                                            value={name.trim()}
                                                                             onChange={({target}) => {
-                                                                                this.editRecord[id][i] = target.value;
-                                                                                console.log(target.value)
+                                                                                record[id][i] = target.value;
+                                                                                this.setState({editRecord: record});
                                                                             }}
                                                                         />
                                                                     )
                                                                 }
                                                             </InputGroup>
                                                             :
-                                                            category.map((name, i) =>
+                                                            (editRecord[id] || category).map((name, i) =>
                                                                 <span key={`${id}-cat-${i}}`}
                                                                       className="d-inline-block p-1 px-2 me-2 mb-2 rounded bg-success"
                                                                       style={{fontSize: '14px'}}>
@@ -260,11 +262,24 @@ export default class DataTable extends Component {
                                                             <Button variant="danger" size="sm"
                                                                     onClick={() => this.setState({editedID: null})}>儲存</Button>
                                                             <Button variant="dark" size="sm" className="ms-2"
-                                                                    onClick={() => this.setState({editedID: null})}>取消</Button>
+                                                                    onClick={() => {
+                                                                        this.setState({
+                                                                            editedID: null,
+                                                                            editRecord: JSON.parse(JSON.stringify(oriRecord))
+                                                                        });
+                                                                    }}>
+                                                                取消
+                                                            </Button>
                                                         </div>
                                                         :
                                                         <Button variant="outline-danger" size="sm"
-                                                                onClick={() => this.setState({editedID: id})}>
+                                                                onClick={() => {
+                                                                    this.setState({
+                                                                        editedID: id,
+                                                                        // editRecord: JSON.parse(JSON.stringify(oriRecord)),
+                                                                        oriRecord: JSON.parse(JSON.stringify(editRecord))
+                                                                    });
+                                                                }}>
                                                             <FontAwesomeIcon icon={faPenToSquare}/>
                                                         </Button>
 

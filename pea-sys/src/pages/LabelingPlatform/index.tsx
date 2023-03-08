@@ -57,8 +57,8 @@ export default function LabelingPlatform() {
 
     };
 
-    const handleTraining = () => {
-        if (!window.confirm('確定要訓練嗎?')) return;
+    const handleRunModel = () => {
+        if (!window.confirm('確定要根據現有資料執行模型嗎?')) return;
 
         console.log(file);
     };
@@ -81,7 +81,7 @@ export default function LabelingPlatform() {
                                 </label>
                             </Button>
                             <Button variant="outline-dark" className="me-2" onClick={handleExport}>匯出資料</Button>
-                            <Button variant="danger" onClick={handleTraining}>訓練</Button>
+                            <Button variant="danger" onClick={handleRunModel}>執行模型</Button>
                         </Col>
                     </Row>
                     <Card.Body className="mx-5 align-self-center">
