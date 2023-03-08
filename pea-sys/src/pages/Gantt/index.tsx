@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState, useContext} from 'react';
+import {useCallback, useEffect, useState, useContext, forwardRef, useRef} from 'react';
 import {Card, Row, Col, InputGroup, FormControl, Button} from 'react-bootstrap';
 import MultiSelect from 'multiselect-react-dropdown';
 import DatePicker, {registerLocale} from 'react-datepicker';
@@ -6,7 +6,7 @@ import {InfoPanel} from '../../components/InfoPanel';
 import GanttChart from '../../components/GanttChart';
 import {loadData, loadDataByCategory} from '../../utils/dataLoader';
 import {SearchPopupPanelContext, SearchDataContext} from '../../helpers/contexts';
-import {Project, Task} from '../../constants/types';
+import {Project, SearchType, Task} from '../../constants/types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import tw from 'date-fns/locale/zh-TW';
@@ -20,7 +20,7 @@ export default function Gantt() {
     const [allTasks, setAllTasks] = useState<Task[]>(loadData());
     const [displayTasks, setDisplayTasks] = useState<Task[]>([]);
     const [curTask, setCurTask] = useState<Task>();
-    const [searchString, setSearchString] = useState<string>('');
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     const [departments, setDepartments] = useState<string[]>([]);
     const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
@@ -71,7 +71,6 @@ export default function Gantt() {
     }, [selectedDepartments]);
 
     useEffect(() => {
-        setSearchString('');
         getDepartments();
         if (searchData) {
             setDisplayTasks(loadData(searchData));
@@ -79,17 +78,6 @@ export default function Gantt() {
             reset();
         }
     }, [allTasks, getProjects, searchData]);
-
-    // 控制展開項
-    // useEffect(() => {
-    //     let displayed: Task[] = [...getProjects()];
-    //     for (let p = 0; p < collapsedProj.length; ++p) {
-    //         let temp: Task[] = getTasks(collapsedProj[p]);
-    //         Array.prototype.push.apply(displayed, temp);
-    //     }
-    //     setDisplayTasks(displayed);
-    // }, [collapsedProj, getProjects, getTasks]);
-
 
     const handleExpanderClick = (task: Task | string, parentId: string) => {
         let target: Task | string;
@@ -100,27 +88,28 @@ export default function Gantt() {
         }
 
         setCurTask(target);
-
-        // if(String(parentId).startsWith('main_')) {
-        //     const catName = getProjects().filter((p) => p.id === parentId)[0].name;
-        //     const children = loadDataByCategory(catName);
-        //     console.log(getProjects().concat(children))
-        //     setDisplayTasks(children);
-        // }
     };
 
     const changeDepartments = (selectedList: string[]) => {
         setSelectedDepartments(selectedList);
-        setSearchString('');
         setSearchData(null);
     };
 
     const getDepartmentTasks = (): Task[] => {
         const isDepEmpty = selectedDepartments.length === 0;
-        if (isDepEmpty && !searchString) return getProjects().filter((t) => t.level === 1); // TODO: 會影響第一次與重置後的資料
-        if (isDepEmpty) return allTasks;
+        if (isDepEmpty && searchInputRef.current?.value) {
+            const searchArray = searchInputRef.current.value.replace(/\s\s+/g, ' ').split(' ');
+            return loadData(searchArray);
+        }
+        if (isDepEmpty) return getProjects();
 
-        let searchTasks: Task[] = allTasks;
+        let searchTasks: Task[];
+        if (searchInputRef.current?.value) {
+            const searchArray = searchInputRef.current.value.replace(/\s\s+/g, ' ').split(' ');
+            searchTasks = loadData(searchArray);
+        } else {
+            searchTasks = allTasks;
+        }
 
         function searchDepartment(task: Task) {
             /*if (task.type === 'task') {
@@ -139,10 +128,29 @@ export default function Gantt() {
     };
 
     const searchTaskName = (searchInput: string) => {
-        if (!searchInput) return;
+        if (!searchInput) {
+            alert('請輸入欲搜尋值\r\n基礎查詢功能會針對「計畫名稱」、「描述」、「關鍵字」及「類別」進行字串搜索。 並且能以「空白字符」做為分隔符號，進行多關鍵字的聯集查詢');
+            return;
+        }
 
         const searchArray = searchInput.replace(/\s\s+/g, ' ').split(' ');
-        setDisplayTasks(loadData(searchArray));
+
+        function searchDepartment(task: Task) {
+            /*if (task.type === 'task') {
+                return selectedDepartments.includes(task.data.department);
+            } else */
+            if (task.level === 2) {
+                return selectedDepartments.includes(task.data[0].data.department); // TODO: 只看第一筆計畫的部會是否相符
+            }
+
+            return false;
+        }
+
+        let searchTasks = loadData(searchArray);
+        if (selectedDepartments.length) {
+            searchTasks = searchTasks.filter(searchDepartment)
+        }
+        setDisplayTasks(searchTasks);
     };
 
     function tasksWithProj(searchTasks: Task[]) {
@@ -164,14 +172,8 @@ export default function Gantt() {
     }
 
     const reset = () => {
-        setSearchString('');
-        // if (selectedDepartments.length) {
-        //     setDisplayTasks(getDepartmentTasks());
-        // } else {
-        //     setDisplayTasks(getProjects());
-        // }
         setSelectedDepartments([]);
-        setDisplayTasks(getProjects().filter((t) => t.level === 1)); // TODO: 會影響第一次與重置後的資料
+        setDisplayTasks(getProjects()); // TODO: 會影響第一次與重置後的資料
     };
 
     const handleDateChange = (dates: any) => {
@@ -202,8 +204,8 @@ export default function Gantt() {
             <Col>
                 <Card className="m-auto" style={{width: "auto"}}>
                     {
-                        <Row style={{margin: "30px 20px 10px -3px"}}>
-                            <Col>
+                        <Row style={{margin: "30px 20px 10px 5px"}}>
+                            <Col xs={2}>
                                 <div className="d-inline-block">
                                     <DatePicker selectsRange closeOnScroll
                                                 locale="zh-TW"
@@ -259,22 +261,16 @@ export default function Gantt() {
                                 />
                             </Col>
                             <Col xs={5}>
-                                <InputGroup className="mb-3">
-                                    <FormControl
-                                        placeholder="Search"
-                                        aria-label="Search"
-                                        aria-describedby="Search"
-                                        value={searchString}
-                                        onChange={e => setSearchString(e.target.value)}
-                                    />
-                                    <Button id="Search" variant="primary"
-                                            onClick={() => searchTaskName(searchString)}>
-                                        Search
-                                    </Button>
-                                    <Button variant="dark" onClick={() => reset()}>
-                                        Reset
-                                    </Button>
-                                    <Button variant="warning" onClick={() => setOpenPanel(true)}>
+                                <InputGroup>
+                                    <div>
+                                        <SearchInput
+                                            ref={searchInputRef}
+                                            handleSearchEvent={searchTaskName}
+                                            handleResetEvent={reset}
+                                        />
+                                    </div>
+                                    <Button className="ms-4 rounded-2" variant="warning"
+                                            onClick={() => setOpenPanel(true)}>
                                         More Filters
                                     </Button>
                                 </InputGroup>
@@ -334,3 +330,39 @@ export default function Gantt() {
         </Row>
     )
 }
+
+const SearchInput = forwardRef<HTMLInputElement, { onSearchStringChange?: Function, handleSearchEvent: Function, handleResetEvent: Function }>(
+    ({
+         onSearchStringChange,
+         handleSearchEvent, handleResetEvent
+     }, ref) => {
+        const [searchString, setSearchString] = useState<string>('');
+
+        useEffect(() => {
+            if (onSearchStringChange) onSearchStringChange(searchString);
+        }, [searchString]);
+
+        return (
+            <InputGroup>
+                <FormControl
+                    ref={ref}
+                    placeholder="Search"
+                    aria-label="Search"
+                    aria-describedby="Search"
+                    value={searchString}
+                    onChange={e => setSearchString(e.target.value)}
+                />
+                <Button id="Search" variant="primary"
+                        onClick={() => handleSearchEvent(searchString)}>
+                    Search
+                </Button>
+                <Button variant="dark" onClick={() => {
+                    setSearchString('');
+                    handleResetEvent();
+                }}>
+                    Reset
+                </Button>
+            </InputGroup>
+        );
+    }
+);
