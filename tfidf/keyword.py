@@ -126,6 +126,8 @@ def main(args):
     json.dump(all, f, indent=4, ensure_ascii=False)
     f.close()
 
+    return all
+
 
 if __name__ == '__main__':
     parser = ArgumentParser()
