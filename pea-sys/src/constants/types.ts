@@ -25,6 +25,7 @@ export interface Task {
     readonly name: string;
     readonly text: string;
     readonly id: string;
+    readonly code: string;
     readonly level: number;
     readonly type: TaskType;
     progress: number;
