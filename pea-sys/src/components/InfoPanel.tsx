@@ -66,21 +66,25 @@ export const InfoPanel: React.FC<{ task: Task; setCurTask: Function; }> = ({task
                                 </Alert>
                             )
                         }
-                        <Alert variant="primary">
-                            <Alert.Heading>
-                                <HiDocumentMagnifyingGlass className="me-1"/>
-                                TF-IDF
-                            </Alert.Heading>
-                            <hr/>
-                            <div className="mb-0 text-black overflow-auto">
-                                {
-                                    target.data.tfidf.CH.map((tfidf: string, i: number) =>
-                                        <div key={`${target.id}_tfidf_ch${i}`}
-                                             className="d-inline-block rounded-2 bg-info bg-opacity-50 py-1 px-2 m-2">{tfidf}</div>
-                                    )
-                                }
-                            </div>
-                        </Alert>
+                        {
+                            target.data.tfidf.CH.length ?
+                                <Alert variant="primary">
+                                    <Alert.Heading>
+                                        <HiDocumentMagnifyingGlass className="me-1"/>
+                                        TF-IDF
+                                    </Alert.Heading>
+                                    <hr/>
+                                    <div className="mb-0 text-black overflow-auto">
+                                        {
+                                            target.data.tfidf.CH.map((tfidf: string, i: number) =>
+                                                <div key={`${target.id}_tfidf_ch${i}`}
+                                                     className="d-inline-block rounded-2 bg-info bg-opacity-50 py-1 px-2 m-2">{tfidf}</div>
+                                            )
+                                        }
+                                    </div>
+                                </Alert>
+                                : null
+                        }
                         {
                             target.data.tfidf.EN.length ?
                                 <Alert variant="danger">
