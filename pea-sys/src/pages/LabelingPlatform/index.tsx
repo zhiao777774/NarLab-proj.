@@ -1,7 +1,8 @@
-import React, {useState} from 'react';
-import {Row, Col, Button, Card} from 'react-bootstrap';
+import React, {useRef, useState} from 'react';
+import {Button, Card, Col, Row} from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
+import {CSVLink} from 'react-csv';
 import * as XLSX from 'xlsx';
 import DataTable from '../../components/DataTable';
 import {loadData} from '../../utils/dataLoader';
@@ -11,14 +12,16 @@ export default function LabelingPlatform() {
     const [data, setData] = useState<Task[]>(
         loadData().filter(({type, level}) => type !== 'project' && level !== 2)
     );
+    const [isRevision, setIsRevision] = useState<boolean>(true);
     const [file, setFile] = useState<File>();
+    const csvLink = useRef<any>();
     const fileReader = new FileReader();
 
     const csvFileToArray = (str: string) => {
         const csvHeader = str.slice(0, str.indexOf('\n')).split(',');
         const csvRows = str.slice(str.indexOf('\n') + 1).split('\n');
 
-        const array = csvRows.map(i => {
+        const resArray = csvRows.map(i => {
             const values = i.split(',');
             const obj = csvHeader.reduce((obj, header, index) => {
                 // @ts-ignore
@@ -28,18 +31,35 @@ export default function LabelingPlatform() {
             return obj;
         });
 
-        console.log(array);
+        return resArray;
+    };
+
+    const beforeExportData = () => {
+        return data.map((project) => {
+            return {
+                '系統編號': project.code,
+                '計畫完整中文名稱': project.name,
+                '年度': project.start.toRepublicYear().getFullYear(),
+                '部會': project.data.department,
+                '類別': project.data.category.join(';'),
+                '中文關鍵字': project.data.keyword,
+                'TF-IDF': project.data.tfidf.CH.join(';'),
+                '英文斷詞': project.data.tfidf.EN.join(';'),
+                '計畫重點描述': project.data.description
+            };
+        });
     };
 
     const handleFileUpload = async (file: File) => {
         const extIndex = file.name.lastIndexOf('.');
         const extName = file.name.substring(extIndex + 1);
+        let jsonData = null;
+
         if (extName === 'csv') {
             fileReader.onload = (event) => {
                 const textRes = event.target?.result;
-                console.log(textRes);
                 // @ts-ignore
-                csvFileToArray(textRes);
+                jsonData = csvFileToArray(textRes);
             };
 
             fileReader.readAsText(file);
@@ -47,20 +67,91 @@ export default function LabelingPlatform() {
             const xlsxData = await file.arrayBuffer();
             const workbook = XLSX.read(xlsxData);
             const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-            console.log(jsonData)
+            jsonData = XLSX.utils.sheet_to_json(worksheet);
         }
+
+        const res = await fetch('http://localhost:8090/preprocess', {
+            method: 'POST',
+            headers: {
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: JSON.stringify({data: jsonData})
+        });
+        const result = await res.json();
+        return Object.values(result).flat().map((item: any) => {
+            const {code, name, startDate, ...others} = item;
+            const {category, chineseKeyword, ...data} = others;
+            return {
+                id: code,
+                name,
+                start: new Date(Number(startDate) + 1911, 0, 0),
+                level: 3,
+                type: 'task',
+                data: {
+                    category: [category],
+                    ...data,
+                    keyword: chineseKeyword,
+                    tfidf: {
+                        CH: [],
+                        EN: []
+                    }
+                }
+            } as Task;
+        }) as Task[];
     };
 
-    const handleExport = () => {
+    const handleRunModel = async () => {
+        if (!window.confirm('確定要儲存資料，並且執行模型嗎?')) return;
 
-    };
+        const jsonData = isRevision ? [] : data.map((project: Task) => {
+            const {id, name, start, data} = project;
+            const {tfidf, category, keyword, ...reservedData} = data;
+            return {
+                code: id,
+                name,
+                startDate: start.toRepublicYear().getFullYear(),
+                chineseKeyword: keyword,
+                category: category[0],
+                ...reservedData,
+            };
+        });
+        const res = await fetch('http://localhost:8090/store', {
+            method: isRevision ? 'PATCH' : 'POST',
+            headers: {
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: JSON.stringify({data: jsonData})
+        });
 
-    const handleRunModel = () => {
-        if (!window.confirm('確定要根據現有資料執行模型嗎?')) return;
+        const result = await res.json();
 
-        console.log(file);
+        if (result.ok) {
+            alert('資料變更成功');
+            setData(Object.values(result.result).flat().map((item: any, i) => {
+                    const {code, name, startDate, ...others} = item;
+                    const {category, chineseKeyword, ...data} = others;
+                    return {
+                        id: `${code}_${i}`,
+                        name,
+                        start: new Date(Number(startDate) + 1911, 0, 0),
+                        level: 3,
+                        type: 'task',
+                        data: {
+                            category: category.split(';'),
+                            ...data,
+                            keyword: chineseKeyword,
+                            tfidf: {
+                                CH: [],
+                                EN: []
+                            }
+                        }
+                    } as Task;
+                }) as Task[]
+            );
+            setIsRevision(false);
+        } else {
+            alert('資料變更失敗');
+        }
     };
 
     return (
@@ -75,17 +166,53 @@ export default function LabelingPlatform() {
                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                if (!e.target.files) return;
                                                setFile(e.target.files[0]);
-                                               handleFileUpload(e.target.files[0]);
+                                               handleFileUpload(e.target.files[0]).then((data) => {
+                                                   // @ts-ignore
+                                                   setData(data);
+                                                   alert('匯入成功');
+                                                   setIsRevision(false);
+                                                   setFile(undefined);
+                                               });
                                            }}/>
-                                    {file?.name} 匯入資料
+                                    {file?.name ? `${file?.name} 匯入中...` : '匯入資料'}
                                 </label>
                             </Button>
-                            <Button variant="outline-dark" className="me-2" onClick={handleExport}>匯出資料</Button>
-                            <Button variant="danger" onClick={handleRunModel}>執行模型</Button>
+                            <CSVLink data={beforeExportData()}
+                                     filename="data.csv"
+                                     className="btn btn-outline-dark me-2 d-none"
+                                     target="_blank"
+                                     ref={csvLink}>
+                                匯出資料
+                            </CSVLink>
+                            <div className="d-inline-block me-2">
+                                <DropdownList
+                                    config={{
+                                        id: 'dropdown-export-data',
+                                        title: '匯出資料',
+                                        onSelected: (eventKey: 'csv' | 'json') => {
+                                            if (eventKey === 'json') {
+                                                const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+                                                    JSON.stringify(beforeExportData())
+                                                )}`;
+                                                const link = document.createElement('a');
+                                                link.href = jsonString;
+                                                link.download = 'data.json';
+                                                link.click();
+                                            } else {
+                                                if (csvLink && csvLink.current) {
+                                                    csvLink.current?.link.click();
+                                                }
+                                            }
+                                        }
+                                    }}
+                                    items={['csv', 'json']}
+                                />
+                            </div>
+                            <Button variant="danger" onClick={handleRunModel}>儲存</Button>
                         </Col>
                     </Row>
                     <Card.Body className="mx-5 align-self-center">
-                        <DataTable user="undefined" dataset={data}/>
+                        <DataTable user="undefined" dataset={Array.from(data)}/>
                     </Card.Body>
                 </Card>
             </Col>
@@ -102,7 +229,7 @@ const DropdownList: React.FC<{ config: DropdownListConfig; items: string[]; }> =
     ({config, items}) => {
         return (
             <DropdownButton id={config.id} title={config.title + ' '} onSelect={config.onSelected}
-                            variant="dark">
+                            variant="outline-dark">
                 {
                     items.map((text: string) =>
                         <Dropdown.Item key={`dropdown-${config.id}-${text}`} eventKey={text}>{text}</Dropdown.Item>)
