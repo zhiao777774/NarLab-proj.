@@ -19,11 +19,11 @@ export default class DataTable extends Component {
     constructor(props) {
         super(props);
 
-        this.data = this.props.dataset;
-        this.dataSize = this.data.length;
+        const dataSize = this.props.dataset.length;
         this.state = {
+            dataSize,
             start: 0,
-            end: 100 <= this.dataSize ? 99 : this.dataSize - 1,
+            end: 100 <= dataSize ? 99 : dataSize - 1,
             pageSize: 100,
             page: 1,
             orderby: '年份',
@@ -41,7 +41,7 @@ export default class DataTable extends Component {
         if (this.state.selected !== eventKey) {
             this.setState({
                 start: 0,
-                end: pageSize <= this.dataSize ? pageSize - 1 : this.dataSize - 1,
+                end: pageSize <= this.state.dataSize ? pageSize - 1 : this.state.dataSize - 1,
                 pageSize,
                 page: 1
             });
@@ -53,10 +53,10 @@ export default class DataTable extends Component {
             target.parentNode.getAttribute('d-event');
         const {start, end, pageSize, page} = this.state;
 
-        if (event === 'next' && start + pageSize <= this.dataSize) {
+        if (event === 'next' && start + pageSize <= this.state.dataSize) {
             this.setState({
                 start: start + pageSize,
-                end: end + pageSize > this.dataSize ? this.dataSize - 1 : end + pageSize,
+                end: end + pageSize > this.state.dataSize ? this.state.dataSize - 1 : end + pageSize,
                 page: page + 1
             });
         } else if (event === 'prev' && start - pageSize >= 0) {
@@ -75,7 +75,7 @@ export default class DataTable extends Component {
             const {pageSize} = this.state;
             this.setState({
                 start: page * pageSize - pageSize,
-                end: page * pageSize - 1 > this.dataSize ? this.dataSize - 1 : page * pageSize - 1,
+                end: page * pageSize - 1 > this.state.dataSize ? this.state.dataSize - 1 : page * pageSize - 1,
                 page
             });
         }
@@ -95,14 +95,27 @@ export default class DataTable extends Component {
         this.setState({curTask: task});
     };
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (prevProps.dataset !== this.props.dataset) {
+            const dataSize = this.props.dataset.length;
+            this.setState({
+                dataSize,
+                start: 0,
+                end: 100 <= dataSize ? 99 : dataSize - 1,
+                page: 1,
+            });
+        }
+    }
+
     render() {
-        const {start, end, pageSize, page, orderby, asc} = this.state;
+        const {dataset} = this.props;
+        const {dataSize, start, end, pageSize, page, orderby, asc} = this.state;
         const {curTask, editedID, editRecord, oriRecord} = this.state;
         const pageSizes = [100, 50, 20];
-        const pageable = this.dataSize / pageSize > 1;
-        const lastPageNumber = Math.ceil(this.dataSize / pageSize);
+        const pageable = dataSize / pageSize > 1;
+        const lastPageNumber = Math.ceil(dataSize / pageSize);
 
-        const data = this.data.slice(start, end + 1);
+        const data = dataset.slice(start, end + 1);
         data.sort((item1, item2) => {
             switch (orderby) {
                 case '年份':
@@ -118,7 +131,7 @@ export default class DataTable extends Component {
             <div className="overflow-hidden">
                 <div className="fw-bold fs-6 position-relative"
                      style={{marginTop: '5vh', marginBottom: '6vh', bottom: '4vh', left: 0}}>
-                    <span className={styles.dtPageText}>顯示 {this.dataSize} 中的 {start + 1}-{end + 1}</span>
+                    <span className={styles.dtPageText}>顯示 {dataSize} 中的 {start + 1}-{end + 1}</span>
                     <span className={styles.dtBtnPageContainer}>
                             <FontAwesomeIcon icon={faChevronLeft} size='lg'
                                              className={styles.dtBtnPagePrev}
@@ -142,7 +155,7 @@ export default class DataTable extends Component {
                             })
                         }
                         {
-                            this.dataSize / pageSize > page + 3 ?
+                            dataSize / pageSize > page + 3 ?
                                 <div className="d-inline me-3">...</div> :
                                 null
                         }
