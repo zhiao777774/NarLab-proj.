@@ -95,7 +95,7 @@ export default class GanttChart extends Component {
             }
 
             const classNames = ['gantt_task_content', 'gantt-content-project', 'gantt-content-task'];
-            if (id && !this.activeID && classNames.includes(e.target.className)) {
+            if (id && !this.activeID && classNames.includes(e.target.className.split(' ')[0])) {
                 const task = gantt.getTask(id);
                 const hasTasks = !gantt.getTaskByTime().every(({type}) => type === 'project');
                 if (hasTasks && task.type === 'project') return false;
