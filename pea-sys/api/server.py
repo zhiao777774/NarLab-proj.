@@ -53,9 +53,32 @@ def store():
         df = preproc_module.preprocess(df)
         df = pd.concat([df, pd.DataFrame.from_dict(req_data)])
         data = preproc_module.combine(df)
+        # TODO: execute tfidf, classification, BERTopic, etc.
         return jsonify({'ok': True, 'result': data})
     # PATCH: modify an existing data
     else:
+        with open(_ROOT_PATH / 'data/folder_nar/category_probability.json', 'r') as f:
+            cat_prob_data = json.load(f).copy()
+            for item in req_data:
+                code = list(item.keys())[0]
+                data = cat_prob_data[code].copy()
+                cat_top5 = data['predictCategoryTop5'].split(';')
+                cat_prob_top5 = data['predictProbabilityTop5'].split(';')
+
+                for i, cat in enumerate(cat_top5[:3]):
+                    new_cat = item[code][i]
+                    if cat != item[code][i]:
+                        cat_top5[i] = new_cat
+                        cat_prob_top5[i] = 1.0
+
+                data['predictCategoryTop5'] = ';'.join(cat_top5)
+                data['predictProbabilityTop5'] = ';'.join(map(lambda p: str(p), cat_prob_top5))
+                cat_prob_data[code] = data
+
+        # TODO: save data to json (mv pea-sys/src/data/revised)
+        with open(_ROOT_PATH / 'data/folder_nar/category_probability.json', 'w') as f:
+            f.write(json.dumps(cat_prob_data, ensure_ascii=False))
+
         return jsonify({'ok': True})
 
 
