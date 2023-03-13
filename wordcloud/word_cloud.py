@@ -2,7 +2,11 @@ import pandas as pd
 import json
 from wordcloud import WordCloud, STOPWORDS
         
+def isNaN(string):
+    return string != string
+
 data = pd.read_excel('./data/folder_nar/103-110_full.xlsx')
+
 with open('./data/folder_nar/tfidf.json', 'r') as f:
     tfidf = json.load(f)
 
@@ -16,39 +20,41 @@ class_name = ['AI、雲端、巨量資料', '虛擬實境', '人才補助與延�
               '數位內容', '數位學習', '數位轉型與智慧政府', '環境監測與污染防治', '職安', '警政與法務']
 
 font_path = './wordcloud/NotoSansTC-Regular.otf'
-idx = 0
+i = 0
 
-# 3152
 for c in class_name:
-    print(c)
     tfidf_str = ''
     
-    for i in range(3152):
-        if data.iloc[i]['新標籤'] == c:
-            for t in tfidf:
-                if t['code'] == data.iloc[i]['系統編號']:
-                    for ch in t['tfidf']['CH']:                   
-                        tfidf_str += ch + ' '
+    for idx, row in data.iterrows():
+        if isNaN(row['系統編號']) == False:
+            if data.iloc[idx]['新標籤'] == c:
+                for t in tfidf:
+                    for value in t.values():
+                        if value['code'] == data.iloc[idx]['系統編號']:
+                            for ch in value['tfidf']['CH']:                   
+                                tfidf_str += ch + ' '
+
+    print(c)
 
 
     if tfidf_str != '':
         wordcloud = WordCloud(background_color='white', contour_width=1, contour_color='steelblue', font_path=font_path).generate(tfidf_str)
-        wordcloud.to_file('./pea-sys/src/data/wordcloud/' + str(idx) + '.png')
-        print('save succeed')
+        wordcloud.to_file('./pea-sys/src/data/wordcloud/' + str(i) + '.png')
     
-    idx += 1
+    i += 1
 
 
 # use the code below if no data is in a specific class
 # tfidf_str = ''
 
-# for i in range(3152):
-#     if isinstance(data.iloc[i]['中文關鍵詞'], str):
-#         if '虛擬實境' in data.iloc[i]['中文關鍵詞']:
-#             for t in tfidf:
-#                 if t['code'] == data.iloc[i]['系統編號']:
-#                     for ch in t['tfidf']['CH']:                   
-#                         tfidf_str += ch + ' '
+# for idx, row in data.iterrows():
+#     if isNaN(row['系統編號']) == False:
+#         if isinstance(data.iloc[i]['中文關鍵詞'], str):
+#             if '虛擬實境' in data.iloc[i]['中文關鍵詞']:
+#                 for t in tfidf:
+#                     if t['code'] == data.iloc[i]['系統編號']:
+#                         for ch in t['tfidf']['CH']:                   
+#                             tfidf_str += ch + ' '
 
 
 # if tfidf_str != '':
