@@ -18,7 +18,7 @@ export function loadData(condition: Array<any> | null = null): Task[] {
     const projectData = require('../data/revised/dataset_combine.json');
     const catSeries = require('../data/revised/category_statistic.json');
     const catProb = require('../data/revised/category_probability.json');
-    const tfIdf = require('../data/revised/tfidf_revised.json');
+    const tfIdf = require('../data/revised/tfidf.json');
 
     const tasks: Task[] = [];
     const yearRange = numberRange(103, 110, true);
@@ -123,7 +123,7 @@ export function loadData(condition: Array<any> | null = null): Task[] {
 export function loadDataByCategory(cat: string): Task[] {
     const projectData = require('../data/revised/dataset_combine.json');
     const catProb = require('../data/revised/category_probability.json');
-    const tfIdf = require('../data/revised/tfidf_revised.json');
+    const tfIdf = require('../data/revised/tfidf.json');
 
     const tasks: Task[] = [];
     Object.keys(projectData).forEach((p, j) => {
