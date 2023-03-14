@@ -30,8 +30,7 @@ export default class DataTable extends Component {
             asc: false,
             curTask: null,
             editedID: null,
-            editRecord: {},
-            oriRecord: {}
+            editRecord: {}
         };
     }
 
@@ -110,7 +109,7 @@ export default class DataTable extends Component {
     render() {
         const {dataset} = this.props;
         const {dataSize, start, end, pageSize, page, orderby, asc} = this.state;
-        const {curTask, editedID, editRecord, oriRecord} = this.state;
+        const {curTask, editedID, editRecord} = this.state;
         const pageSizes = [100, 50, 20];
         const pageable = dataSize / pageSize > 1;
         const lastPageNumber = Math.ceil(dataSize / pageSize);
@@ -210,11 +209,14 @@ export default class DataTable extends Component {
                         <tbody className="fw-normal fs-6">
                         {
                             data.map(((datasetInfo, idx) => {
-                                const {id, name, start, data} = datasetInfo;
+                                const {id, code, name, start, data} = datasetInfo;
                                 const {category} = data;
                                 const editing = editedID === id;
-                                const record = JSON.parse(JSON.stringify(editRecord));
-                                if (editing) record[id] ||= category;
+                                const record = Object.assign({}, editRecord);
+                                const initRecord = category.map((cat) => new Stack([cat]));
+                                if (editing) {
+                                    record[code] = record[code] || initRecord;
+                                }
 
                                 return (
                                     <tr key={id} className={((idx % 2) ? 'bg-secondary bg-opacity-25' : 'bg-white')}>
@@ -238,15 +240,15 @@ export default class DataTable extends Component {
                                                         editing ?
                                                             <InputGroup>
                                                                 {
-                                                                    (editRecord[id] || category).map((name, i) =>
+                                                                    (record[code] || initRecord).map((recordStack, i) =>
                                                                         <FormControl
                                                                             size="sm"
                                                                             key={`${id}-cat-edited-${i}}`}
                                                                             className="me-2"
                                                                             style={{maxWidth: '150px'}}
-                                                                            value={name.trim()}
+                                                                            value={recordStack.peek().trim()}
                                                                             onChange={({target}) => {
-                                                                                record[id][i] = target.value;
+                                                                                record[code][i].push(target.value);
                                                                                 this.setState({editRecord: record});
                                                                             }}
                                                                         />
@@ -254,11 +256,11 @@ export default class DataTable extends Component {
                                                                 }
                                                             </InputGroup>
                                                             :
-                                                            (editRecord[id] || category).map((name, i) =>
+                                                            (record[code] || initRecord).map((recordStack, i) =>
                                                                 <span key={`${id}-cat-${i}}`}
                                                                       className="d-inline-block p-1 px-2 me-2 mb-2 rounded bg-success"
                                                                       style={{fontSize: '14px'}}>
-                                                                    {name.trim()}
+                                                                    {recordStack.peek().trim()}
                                                                 </span>
                                                             )
                                                     }
@@ -271,12 +273,21 @@ export default class DataTable extends Component {
                                                     editing ?
                                                         <div>
                                                             <Button variant="danger" size="sm"
-                                                                    onClick={() => this.setState({editedID: null})}>儲存</Button>
-                                                            <Button variant="dark" size="sm" className="ms-2"
                                                                     onClick={() => {
+                                                                        const temp = Object.assign({}, editRecord);
+                                                                        temp[code] = record[code].map((recordStack) => new Stack([recordStack.peek()]));
                                                                         this.setState({
                                                                             editedID: null,
-                                                                            editRecord: JSON.parse(JSON.stringify(oriRecord))
+                                                                            editRecord: temp
+                                                                        });
+                                                                    }}>儲存</Button>
+                                                            <Button variant="dark" size="sm" className="ms-2"
+                                                                    onClick={() => {
+                                                                        const temp = Object.assign({}, editRecord);
+                                                                        temp[code] = record[code].map((recordStack) => new Stack([recordStack.first()]));
+                                                                        this.setState({
+                                                                            editedID: null,
+                                                                            editRecord: temp
                                                                         });
                                                                     }}>
                                                                 取消
@@ -286,9 +297,7 @@ export default class DataTable extends Component {
                                                         <Button variant="outline-danger" size="sm"
                                                                 onClick={() => {
                                                                     this.setState({
-                                                                        editedID: id,
-                                                                        // editRecord: JSON.parse(JSON.stringify(oriRecord)),
-                                                                        oriRecord: JSON.parse(JSON.stringify(editRecord))
+                                                                        editedID: id
                                                                     });
                                                                 }}>
                                                             <FontAwesomeIcon icon={faPenToSquare}/>
@@ -333,3 +342,36 @@ const DropdownList = ({config, items}) => {
         </DropdownButton>
     );
 };
+
+
+function Stack(init = []) {
+    let items = init;
+
+    this.push = function (element) {
+        items.push(element);
+    }
+
+    this.pop = function () {
+        return items.pop();
+    }
+
+    this.peek = function () {
+        return items[items.length - 1];
+    }
+
+    this.first = function () {
+        return items[0] || null;
+    }
+
+    this.isEmpty = function () {
+        return items.length === 0;
+    }
+
+    this.clear = function () {
+        items = [];
+    }
+
+    this.size = function () {
+        return items.length;
+    }
+}
