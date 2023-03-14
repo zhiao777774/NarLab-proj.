@@ -14,7 +14,8 @@ export default function LabelingPlatform() {
     );
     const [isRevision, setIsRevision] = useState<boolean>(true);
     const [file, setFile] = useState<File>();
-    const csvLink = useRef<any>();
+    const csvLinkRef = useRef<any>();
+    const dataTableRef = useRef<any>();
     const fileReader = new FileReader();
 
     const csvFileToArray = (str: string) => {
@@ -103,18 +104,25 @@ export default function LabelingPlatform() {
     const handleRunModel = async () => {
         if (!window.confirm('確定要儲存資料，並且執行模型嗎?')) return;
 
-        const jsonData = isRevision ? [] : data.map((project: Task) => {
-            const {id, name, start, data} = project;
-            const {tfidf, category, keyword, ...reservedData} = data;
-            return {
-                code: id,
-                name,
-                startDate: start.toRepublicYear().getFullYear(),
-                chineseKeyword: keyword,
-                category: category[0],
-                ...reservedData,
-            };
-        });
+        const jsonData = isRevision ?
+            Object.entries(dataTableRef.current.state.editRecord).map(([key, value]) => {
+                return {
+                    // @ts-ignore
+                    [key]: value.map((stack: any) => stack.peek())
+                };
+            })
+            : data.map((project: Task) => {
+                const {id, name, start, data} = project;
+                const {tfidf, category, keyword, ...reservedData} = data;
+                return {
+                    code: id,
+                    name,
+                    startDate: start.toRepublicYear().getFullYear(),
+                    chineseKeyword: keyword,
+                    category: category[0],
+                    ...reservedData,
+                };
+            });
         const res = await fetch('http://localhost:8090/store', {
             method: isRevision ? 'PATCH' : 'POST',
             headers: {
@@ -122,32 +130,34 @@ export default function LabelingPlatform() {
             },
             body: JSON.stringify({data: jsonData})
         });
-
         const result = await res.json();
 
         if (result.ok) {
             alert('資料變更成功');
-            setData(Object.values(result.result).flat().map((item: any, i) => {
-                    const {code, name, startDate, ...others} = item;
-                    const {category, chineseKeyword, ...data} = others;
-                    return {
-                        id: `${code}_${i}`,
-                        name,
-                        start: new Date(Number(startDate) + 1911, 0, 0),
-                        level: 3,
-                        type: 'task',
-                        data: {
-                            category: category.split(';'),
-                            ...data,
-                            keyword: chineseKeyword,
-                            tfidf: {
-                                CH: [],
-                                EN: []
+            if (!isRevision) {
+                // POST
+                setData(Object.values(result.result).flat().map((item: any, i) => {
+                        const {code, name, startDate, ...others} = item;
+                        const {category, chineseKeyword, ...data} = others;
+                        return {
+                            id: code,
+                            name,
+                            start: new Date(Number(startDate) + 1911, 0, 0),
+                            level: 3,
+                            type: 'task',
+                            data: {
+                                category: category.split(';'),
+                                ...data,
+                                keyword: chineseKeyword,
+                                tfidf: {
+                                    CH: [],
+                                    EN: []
+                                }
                             }
-                        }
-                    } as Task;
-                }) as Task[]
-            );
+                        } as Task;
+                    }) as Task[]
+                );
+            }
             setIsRevision(false);
         } else {
             alert('資料變更失敗');
@@ -181,7 +191,7 @@ export default function LabelingPlatform() {
                                      filename="data.csv"
                                      className="btn btn-outline-dark me-2 d-none"
                                      target="_blank"
-                                     ref={csvLink}>
+                                     ref={csvLinkRef}>
                                 匯出資料
                             </CSVLink>
                             <div className="d-inline-block me-2">
@@ -199,8 +209,8 @@ export default function LabelingPlatform() {
                                                 link.download = 'data.json';
                                                 link.click();
                                             } else {
-                                                if (csvLink && csvLink.current) {
-                                                    csvLink.current?.link.click();
+                                                if (csvLinkRef && csvLinkRef.current) {
+                                                    csvLinkRef.current?.link.click();
                                                 }
                                             }
                                         }
@@ -212,7 +222,7 @@ export default function LabelingPlatform() {
                         </Col>
                     </Row>
                     <Card.Body className="mx-5 align-self-center">
-                        <DataTable user="undefined" dataset={Array.from(data)}/>
+                        <DataTable ref={dataTableRef} user="undefined" dataset={Array.from(data)}/>
                     </Card.Body>
                 </Card>
             </Col>
