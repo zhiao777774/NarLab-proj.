@@ -240,13 +240,13 @@ export default class DataTable extends Component {
                                                         editing ?
                                                             <InputGroup>
                                                                 {
-                                                                    (record[code] || initRecord).map((recordStack, i) =>
+                                                                    (record[code] || initRecord).map((stack, i) =>
                                                                         <FormControl
                                                                             size="sm"
                                                                             key={`${id}-cat-edited-${i}}`}
                                                                             className="me-2"
                                                                             style={{maxWidth: '150px'}}
-                                                                            value={recordStack.peek().trim()}
+                                                                            value={stack.peek().trim()}
                                                                             onChange={({target}) => {
                                                                                 record[code][i].push(target.value);
                                                                                 this.setState({editRecord: record});
@@ -256,11 +256,11 @@ export default class DataTable extends Component {
                                                                 }
                                                             </InputGroup>
                                                             :
-                                                            (record[code] || initRecord).map((recordStack, i) =>
+                                                            (record[code] || initRecord).map((stack, i) =>
                                                                 <span key={`${id}-cat-${i}}`}
                                                                       className="d-inline-block p-1 px-2 me-2 mb-2 rounded bg-success"
                                                                       style={{fontSize: '14px'}}>
-                                                                    {recordStack.peek().trim()}
+                                                                    {stack.peek().trim()}
                                                                 </span>
                                                             )
                                                     }
@@ -274,8 +274,13 @@ export default class DataTable extends Component {
                                                         <div>
                                                             <Button variant="danger" size="sm"
                                                                     onClick={() => {
+                                                                        if (record[code].some((stack) => !stack.peek().trim())) {
+                                                                            alert('類別不可為空');
+                                                                            return;
+                                                                        }
+
                                                                         const temp = Object.assign({}, editRecord);
-                                                                        temp[code] = record[code].map((recordStack) => new Stack([recordStack.peek()]));
+                                                                        temp[code] = record[code].map((stack) => new Stack([stack.peek()]));
                                                                         this.setState({
                                                                             editedID: null,
                                                                             editRecord: temp
@@ -284,7 +289,7 @@ export default class DataTable extends Component {
                                                             <Button variant="dark" size="sm" className="ms-2"
                                                                     onClick={() => {
                                                                         const temp = Object.assign({}, editRecord);
-                                                                        temp[code] = record[code].map((recordStack) => new Stack([recordStack.first()]));
+                                                                        temp[code] = record[code].map((stack) => new Stack([stack.first()]));
                                                                         this.setState({
                                                                             editedID: null,
                                                                             editRecord: temp
