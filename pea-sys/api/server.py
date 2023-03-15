@@ -1,11 +1,14 @@
+import sys
 import json
 import pathlib
-import logging
-import sys
 import importlib.util
 import pandas as pd
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+import uvicorn
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+
+from database import MongoDB
+from data_type import RequestData, BasicSearchData, SearchDataForDataset
 
 
 def import_lib(module_name, spec_name, spec_path):
@@ -17,11 +20,16 @@ def import_lib(module_name, spec_name, spec_path):
     return module
 
 
-app = Flask(__name__)
-CORS(app)
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+db_conn = MongoDB()
+db_conn.connect('nar')
 
 _ROOT_PATH = pathlib.PurePath(__file__).parent.parent.parent
 preproc_module = import_lib('preprocessing', 'preprocessing', _ROOT_PATH / 'preprocessing.py')
@@ -30,58 +38,89 @@ preproc_module = import_lib('preprocessing', 'preprocessing', _ROOT_PATH / 'prep
 # tfidf_module = import_lib('tfidf', 'tfidf.keyword', _ROOT_PATH / 'tfidf/keyword.py')
 
 
-@app.route('/', methods=['GET'])
-def index():
-    return 'test'
+@app.get('/tfidf')
+@app.post('/tfidf')
+def get_tfidf(req: BasicSearchData, request: Request):
+    cond = req.condition if request.method.upper() == 'POST' else {}
+    res = []
+    for d_tfidf in list(db_conn['tfidf'].find(cond)):
+        d_tfidf['_id'] = str(d_tfidf['_id'])
+        res.append(d_tfidf)
+    return {d['code']: d for d in res}
 
 
-@app.route('/preprocess', methods=['POST'])
-def preprocess():
-    req_data = request.get_data()
-    req_data = json.loads(req_data)['data']
-    data = preproc_module.combine(pd.DataFrame.from_dict(req_data))
-    return jsonify(data)
+@app.get('/dataset')
+@app.post('/dataset')
+def get_dataset(req: SearchDataForDataset, request: Request):
+    cond = req.condition if request.method.upper() == 'POST' else {}
+    load_combined = req.combined
+    res = list(db_conn['dataset_combine' if load_combined else 'dataset'].find(cond))
+    return {d['project']: d['data'] for d in res} if load_combined else res
 
 
-@app.route('/store', methods=['PATCH', 'POST'])
-def store():
-    req_data = request.get_data()
-    req_data = json.loads(req_data)['data']
-    # POST: add new data
-    if request.method == 'POST':
+@app.get('/category/stat')
+@app.post('/category/stat')
+def get_category_stat(req: BasicSearchData, request: Request):
+    cond = req.condition if request.method.upper() == 'POST' else {}
+    res = list(db_conn['category_stat'].find(cond))
+    return {d['name']: d['data'] for d in res}
+
+
+@app.get('/category/prob')
+@app.post('/category/prob')
+def get_category_prob(req: BasicSearchData, request: Request):
+    cond = req.condition if request.method.upper() == 'POST' else {}
+    res = []
+    for d_cat in list(db_conn['category_prob'].find(cond)):
+        d_cat['_id'] = str(d_cat['_id'])
+        res.append(d_cat)
+    return {d['code']: d for d in res}
+
+
+@app.post('/preprocess')
+def preprocess(req: RequestData):
+    return preproc_module.combine(pd.DataFrame.from_dict(req.data))
+
+
+@app.patch('/store')
+@app.post('/store')
+def store(req: RequestData, request: Request):
+    req_data = req.data
+    if request.method.upper() == 'POST':
+        # POST: add new data
         df = pd.read_excel(_ROOT_PATH / 'data/folder_nar/103-110_full.xlsx')
         df = preproc_module.preprocess(df)
         df = pd.concat([df, pd.DataFrame.from_dict(req_data)])
         data = preproc_module.combine(df)
+        # TODO: insert new data into Database
         # TODO: execute tfidf, classification, BERTopic, etc.
-        return jsonify({'ok': True, 'result': data})
-    # PATCH: modify an existing data
+        return {'ok': True, 'result': data}
     else:
-        with open(_ROOT_PATH / 'data/folder_nar/category_probability.json', 'r') as f:
-            cat_prob_data = json.load(f).copy()
-            for item in req_data:
-                code = list(item.keys())[0]
-                data = cat_prob_data[code].copy()
-                cat_top5 = data['predictCategoryTop5'].split(';')
-                cat_prob_top5 = data['predictProbabilityTop5'].split(';')
+        # PATCH: modify an existing data
+        for item in req_data:
+            code = list(item.keys())[0]
+            target = list(db_conn['category_prob'].find({'code': code}))[0]
+            update_idx = [
+                i for i, cat in enumerate(target['predictCategoryTop5'][:3])
+                if cat != item[code][i]
+            ]
+            for i in update_idx:
+                update_ele = item[code][i]
+                cat_set_name = f'predictCategoryTop5.{i}'
+                prob_set_name = f'predictProbabilityTop5.{i}'
+                db_conn['category_prob'].update(
+                    {'code': code},
+                    {
+                        '$set': {
+                            cat_set_name: update_ele,
+                            prob_set_name: 1.0
+                        }
+                    }
+                )
 
-                for i, cat in enumerate(cat_top5[:3]):
-                    new_cat = item[code][i]
-                    if cat != item[code][i]:
-                        cat_top5[i] = new_cat
-                        cat_prob_top5[i] = 1.0
-
-                data['predictCategoryTop5'] = ';'.join(cat_top5)
-                data['predictProbabilityTop5'] = ';'.join(map(lambda p: str(p), cat_prob_top5))
-                cat_prob_data[code] = data
-
-        # TODO: save data to json (mv pea-sys/src/data/revised)
-        with open(_ROOT_PATH / 'data/folder_nar/category_probability.json', 'w') as f:
-            f.write(json.dumps(cat_prob_data, ensure_ascii=False))
-
-        return jsonify({'ok': True})
+        return {'ok': True}
 
 
 if __name__ == '__main__':
     port = 8090
-    app.run(port=port, debug=True)
+    uvicorn.run(app='server:app', host='127.0.0.1', port=port, reload=True)
