@@ -1,11 +1,8 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import Chart from 'react-apexcharts';
 import {loadData} from '../../utils/dataLoader';
 
 export default function TimeAnalysis() {
-    const allTasks = loadData();
-    const projectTasks = allTasks.filter((t) => t.type === 'project');
-
     const chartConfig = {
         chart: {
             animations: {
@@ -36,25 +33,40 @@ export default function TimeAnalysis() {
         }
     };
 
-    const [countData, setCountData] = useState<object[]>(
-        projectTasks.map((proj) => {
-            return {
-                name: String(proj.name),
-                data: proj.data.series
-            };
-        })
-    );
+    const [countData, setCountData] = useState<object[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        const initData = async () => {
+            setLoading(true);
+            const data = await loadData();
+            const projectTasks = data.filter((t) => t.type === 'project');
+            setCountData(projectTasks.map((proj) => {
+                return {
+                    name: String(proj.name),
+                    data: proj.data.series
+                };
+            }));
+            setLoading(false);
+        }
+        initData();
+    }, []);
 
     return (
         <div style={{margin: 'auto', backgroundColor: 'white', padding: '45px'}}>
-            <Chart
-                // @ts-ignore
-                options={chartConfig}
-                series={countData}
-                type="line"
-                width="1000"
-                height="700"
-            />
+            {
+                !loading ?
+                    <Chart
+                        // @ts-ignore
+                        options={chartConfig}
+                        series={countData}
+                        type="line"
+                        width="1000"
+                        height="700"
+                    />
+                    :
+                    <span>圖表載入中...</span>
+            }
         </div>
     );
 }

@@ -1,26 +1,26 @@
+import {AutocompleteResourceItem} from '../components/Autocomplete';
 import category from '../constants/category';
 import {AutocompleteSearchSource, Project, Task} from '../constants/types';
 import {numberRange} from './range';
-import {AutocompleteResourceItem} from '../components/Autocomplete';
-
-const COLOR_LIST = [
-    '#010221', '#010221', '#010221', '#0A7373',
-    '#0A7373', '#0A7373', '#B7BF99', '#B7BF99',
-    '#B7BF99', '#EDAA25', '#EDAA25', '#EDAA25',
-    '#2E4159', '#2E4159', '#2E4159', '#C43302',
-    '#C43302', '#C43302'
-];
 
 const PROJECT_COLOR = '#0A7373';
 const TASK_COLOR = '#2E4E78';
 
-export function loadData(condition: Array<any> | null = null): Task[] {
-    const projectData = require('../data/revised/dataset_combine.json');
-    const catSeries = require('../data/revised/category_statistic.json');
-    const catProb = require('../data/revised/category_probability.json');
-    const tfIdf = require('../data/revised/tfidf.json');
-
+export async function loadData(condition: Array<any> | null = null): Promise<Task[]> {
     const tasks: Task[] = [];
+    const [projectData, catSeries, catProb, tfIdf] = await Promise.all(
+        ['/dataset', '/category/stat', '/category/prob', '/tfidf']
+            .map(url => fetch('http://localhost:8090' + url, {
+                method: 'POST',
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({condition: {}})
+            }).then(res => res.json()))
+    );
+
     const yearRange = numberRange(103, 110, true);
     for (let i = 0; i < category.length; ++i) {
         const start = new Date(103, 0, 1).toCE();
@@ -97,13 +97,13 @@ export function loadData(condition: Array<any> | null = null): Task[] {
                 data: {
                     keyword: proj.chineseKeyword,
                     tfidf: {
-                        ...tfIdf[proj.code].tfidf
+                        ...tfIdf[proj.code].data
                     },
                     description: proj.description.replaceAll('_x000D_', '\n'),
                     department: proj.department,
                     // 目前只取前三高的類別與機率
-                    category: catProb[proj.code]['predictCategoryTop5'].split(';').slice(0, 3),
-                    categoryProb: catProb[proj.code]['predictProbabilityTop5'].split(';').slice(0, 3)
+                    category: catProb[proj.code]['predictCategoryTop5'].slice(0, 3),
+                    categoryProb: catProb[proj.code]['predictProbabilityTop5'].slice(0, 3)
                         .map((prob: string) => Number(prob))
                 }
             } as Task;
@@ -117,7 +117,111 @@ export function loadData(condition: Array<any> | null = null): Task[] {
         }
     });
 
-    return filter(tasks, condition);
+    return filterBy(tasks, condition);
+
+    // const projectData = require('../data/revised/dataset_combine.json');
+    // const catSeries = require('../data/revised/category_statistic.json');
+    // const catProb = require('../data/revised/category_probability.json');
+    // const tfIdf = require('../data/revised/tfidf.json');
+
+    // const tasks: Task[] = [];
+    // const yearRange = numberRange(103, 110, true);
+    // for (let i = 0; i < category.length; ++i) {
+    //     const start = new Date(103, 0, 1).toCE();
+    //     const end = new Date(110, 0, 1).toCE();
+    //
+    //     const categoryProject = {
+    //         start,
+    //         end,
+    //         start_date: `${start.getFullYear()}-1-1`,
+    //         duration: end.diffYear(start),
+    //         name: category[i],
+    //         text: category[i],
+    //         id: `main_${i}`,
+    //         level: 1,
+    //         type: 'project',
+    //         progress: 1,
+    //         color: PROJECT_COLOR,
+    //         data: {
+    //             years: yearRange.map((n) => String(Math.round(n))),
+    //             series: yearRange.map((year) => catSeries[category[i]][year] || 0)
+    //         },
+    //         isOpen: false
+    //     } as Project;
+    //
+    //     tasks.push(categoryProject);
+    // }
+    //
+    // Object.keys(projectData).forEach((projectName, j) => {
+    //     const project = {
+    //         name: projectName,
+    //         text: projectName,
+    //         id: `proj_${j}`,
+    //         level: 2,
+    //         type: 'task',
+    //         color: TASK_COLOR,
+    //         data: []
+    //     } as Project;
+    //
+    //     for (let i = 0; i < projectData[projectName].length; ++i) {
+    //         const proj = projectData[projectName][i];
+    //         if (!proj.code || proj.code === ' ') continue;
+    //
+    //         const start = new Date(proj.startDate, 0, 1).toCE();
+    //         const end = new Date(proj.endDate, 0, 1).toCE();
+    //
+    //         // TODO: 目前多標籤只取第一個，可能要做修改
+    //         const catIndex = category.indexOf(proj.category.split(';')[0]);
+    //         const parent = `main_${catIndex}`;
+    //
+    //         if (!i) {
+    //             project['project'] = parent;
+    //             project['parent'] = parent;
+    //             project['start'] = start;
+    //             project['start_date'] = `${start.getFullYear()}-1-1`;
+    //         } else if (i === projectData[projectName].length - 1) {
+    //             project['duration'] = end.diffYear(project['start']);
+    //         }
+    //
+    //         const task = {
+    //             start,
+    //             end,
+    //             start_date: `${start.getFullYear()}-1-1`,
+    //             duration: end.diffYear(start),
+    //             name: proj.name,
+    //             text: proj.name,
+    //             id: `proj_${j}_${i}`,
+    //             code: proj.code,
+    //             level: 3,
+    //             type: 'task',
+    //             project: `proj_${j}`,
+    //             parent: `proj_${j}`,
+    //             progress: 1,
+    //             color: TASK_COLOR,
+    //             data: {
+    //                 keyword: proj.chineseKeyword,
+    //                 tfidf: {
+    //                     ...tfIdf[proj.code].tfidf
+    //                 },
+    //                 description: proj.description.replaceAll('_x000D_', '\n'),
+    //                 department: proj.department,
+    //                 // 目前只取前三高的類別與機率
+    //                 category: catProb[proj.code]['predictCategoryTop5'].split(';').slice(0, 3),
+    //                 categoryProb: catProb[proj.code]['predictProbabilityTop5'].split(';').slice(0, 3)
+    //                     .map((prob: string) => Number(prob))
+    //             }
+    //         } as Task;
+    //
+    //         project.data.push(task);
+    //     }
+    //
+    //     if (project.data.length > 0) {
+    //         tasks.push(project);
+    //         project.data.forEach((t: Task) => tasks.push(t));
+    //     }
+    // });
+    //
+    // return filter(tasks, condition);
 }
 
 export function loadDataByCategory(cat: string): Task[] {
@@ -198,7 +302,7 @@ export function loadDataByCategory(cat: string): Task[] {
 }
 
 
-function filter(tasks: Task[], condition: Array<any> | null = null) {
+export function filterBy(tasks: Task[], condition: Array<any> | null = null) {
     if (!condition) return tasks;
 
     let tempTasks = [...tasks];

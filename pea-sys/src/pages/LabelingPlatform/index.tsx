@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Button, Card, Col, Row} from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
@@ -9,14 +9,23 @@ import {loadData} from '../../utils/dataLoader';
 import {Task} from '../../constants/types';
 
 export default function LabelingPlatform() {
-    const [data, setData] = useState<Task[]>(
-        loadData().filter(({type, level}) => type !== 'project' && level !== 2)
-    );
+    const [loading, setLoading] = useState<boolean>(true);
+    const [data, setData] = useState<Task[]>([]);
     const [isRevision, setIsRevision] = useState<boolean>(true);
     const [file, setFile] = useState<File>();
     const csvLinkRef = useRef<any>();
     const dataTableRef = useRef<any>();
     const fileReader = new FileReader();
+
+    useEffect(() => {
+        const initData = async () => {
+            setLoading(true);
+            const data = await loadData();
+            setData(data.filter(({type, level}) => type !== 'project' && level !== 2));
+            setLoading(false);
+        }
+        initData();
+    }, []);
 
     const csvFileToArray = (str: string) => {
         const csvHeader = str.slice(0, str.indexOf('\n')).split(',');
@@ -74,7 +83,9 @@ export default function LabelingPlatform() {
         const res = await fetch('http://localhost:8090/preprocess', {
             method: 'POST',
             headers: {
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': '*',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({data: jsonData})
         });
@@ -102,7 +113,7 @@ export default function LabelingPlatform() {
     };
 
     const handleRunModel = async () => {
-        if (!window.confirm('確定要儲存資料，並且執行模型嗎?')) return;
+        if (!window.confirm('確定要儲存資料嗎?')) return;
 
         const jsonData = isRevision ?
             Object.entries(dataTableRef.current.state.editRecord).map(([key, value]) => {
@@ -126,7 +137,9 @@ export default function LabelingPlatform() {
         const res = await fetch('http://localhost:8090/store', {
             method: isRevision ? 'PATCH' : 'POST',
             headers: {
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': '*',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({data: jsonData})
         });
@@ -166,66 +179,71 @@ export default function LabelingPlatform() {
 
     return (
         <Row className="card-margin-top m-auto align-self-center">
-            <Col>
-                <Card className="m-auto">
-                    <Row className="mx-5 my-4">
-                        <Col>
-                            <Button variant="outline-dark" className="me-2">
-                                <label htmlFor="file-uploader" style={{cursor: 'pointer'}}>
-                                    <input id="file-uploader" type="file" accept=".csv,.xlsx" className="d-none"
-                                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                               if (!e.target.files) return;
-                                               setFile(e.target.files[0]);
-                                               handleFileUpload(e.target.files[0]).then((data) => {
-                                                   // @ts-ignore
-                                                   setData(data);
-                                                   alert('匯入成功');
-                                                   setIsRevision(false);
-                                                   setFile(undefined);
-                                               });
-                                           }}/>
-                                    {file?.name ? `${file?.name} 匯入中...` : '匯入資料'}
-                                </label>
-                            </Button>
-                            <CSVLink data={beforeExportData()}
-                                     filename="data.csv"
-                                     className="btn btn-outline-dark me-2 d-none"
-                                     target="_blank"
-                                     ref={csvLinkRef}>
-                                匯出資料
-                            </CSVLink>
-                            <div className="d-inline-block me-2">
-                                <DropdownList
-                                    config={{
-                                        id: 'dropdown-export-data',
-                                        title: '匯出資料',
-                                        onSelected: (eventKey: 'csv' | 'json') => {
-                                            if (eventKey === 'json') {
-                                                const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-                                                    JSON.stringify(beforeExportData())
-                                                )}`;
-                                                const link = document.createElement('a');
-                                                link.href = jsonString;
-                                                link.download = 'data.json';
-                                                link.click();
-                                            } else {
-                                                if (csvLinkRef && csvLinkRef.current) {
-                                                    csvLinkRef.current?.link.click();
+            {
+                !loading ?
+                    <Col>
+                        <Card className="m-auto">
+                            <Row className="mx-5 my-4">
+                                <Col>
+                                    <Button variant="outline-dark" className="me-2">
+                                        <label htmlFor="file-uploader" style={{cursor: 'pointer'}}>
+                                            <input id="file-uploader" type="file" accept=".csv,.xlsx" className="d-none"
+                                                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                       if (!e.target.files) return;
+                                                       setFile(e.target.files[0]);
+                                                       handleFileUpload(e.target.files[0]).then((data) => {
+                                                           // @ts-ignore
+                                                           setData(data);
+                                                           alert('匯入成功');
+                                                           setIsRevision(false);
+                                                           setFile(undefined);
+                                                       });
+                                                   }}/>
+                                            {file?.name ? `${file?.name} 匯入中...` : '匯入資料'}
+                                        </label>
+                                    </Button>
+                                    <CSVLink data={beforeExportData()}
+                                             filename="data.csv"
+                                             className="btn btn-outline-dark me-2 d-none"
+                                             target="_blank"
+                                             ref={csvLinkRef}>
+                                        匯出資料
+                                    </CSVLink>
+                                    <div className="d-inline-block me-2">
+                                        <DropdownList
+                                            config={{
+                                                id: 'dropdown-export-data',
+                                                title: '匯出資料',
+                                                onSelected: (eventKey: 'csv' | 'json') => {
+                                                    if (eventKey === 'json') {
+                                                        const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+                                                            JSON.stringify(beforeExportData())
+                                                        )}`;
+                                                        const link = document.createElement('a');
+                                                        link.href = jsonString;
+                                                        link.download = 'data.json';
+                                                        link.click();
+                                                    } else {
+                                                        if (csvLinkRef && csvLinkRef.current) {
+                                                            csvLinkRef.current?.link.click();
+                                                        }
+                                                    }
                                                 }
-                                            }
-                                        }
-                                    }}
-                                    items={['csv', 'json']}
-                                />
-                            </div>
-                            <Button variant="danger" onClick={handleRunModel}>儲存</Button>
-                        </Col>
-                    </Row>
-                    <Card.Body className="mx-5 align-self-center">
-                        <DataTable ref={dataTableRef} user="undefined" dataset={Array.from(data)}/>
-                    </Card.Body>
-                </Card>
-            </Col>
+                                            }}
+                                            items={['csv', 'json']}
+                                        />
+                                    </div>
+                                    <Button variant="danger" onClick={handleRunModel}>儲存</Button>
+                                </Col>
+                            </Row>
+                            <Card.Body className="mx-5 align-self-center">
+                                <DataTable ref={dataTableRef} user="undefined" dataset={Array.from(data)}/>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    :
+                    <span>資料載入中...</span>
+            }
         </Row>
     );
 }
