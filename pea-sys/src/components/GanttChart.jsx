@@ -2,11 +2,11 @@ import React, {Component} from 'react';
 import {gantt} from 'dhtmlx-gantt';
 import {Tooltip} from './Tooltip';
 import {loadDataByCategory} from '../utils/dataLoader';
-import {SidebarCollapsedContext} from '../helpers/contexts';
+import {DatasetContext} from '../helpers/contexts';
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
 
 export default class GanttChart extends Component {
-    static contextType = SidebarCollapsedContext;
+    static contextType = DatasetContext;
 
     constructor(props) {
         super(props);
@@ -52,17 +52,23 @@ export default class GanttChart extends Component {
             };
         });
 
-        this.event.onTaskClick = gantt.attachEvent('onTaskClick', (id) => {
+        this.event.onTaskClick = gantt.attachEvent('onTaskClick', async (id) => {
             if (id.startsWith('main_')) {
-                const project = tasks.filter((t) => t.id === id)[0];
+                const categoryItem = tasks.filter((t) => t.id === id)[0];
                 const hasChildren = gantt.getChildren(id).length > 0;
-                if (project.isOpen || project.$open) {
-                    project.isOpen = false;
+                if (categoryItem.isOpen || categoryItem.$open) {
+                    categoryItem.isOpen = false;
                     gantt.close(id);
                 } else {
-                    project.isOpen = true;
+                    categoryItem.isOpen = true;
                     if (!hasChildren) {
-                        const children = loadDataByCategory(project.name);
+                        const children = this.context.filter(({level}) => level !== 1)
+                            .filter((project) => {
+                                if (project.level === 2)
+                                    return project.data[0].data.category[0] === categoryItem.name;
+                                else
+                                    return project.data.category[0] === categoryItem.name;
+                            });
                         children.map((t) => {
                             if (t.level === 2) {
                                 const {duration, ...data} = t;
@@ -97,16 +103,16 @@ export default class GanttChart extends Component {
             const classNames = ['gantt_task_content', 'gantt-content-project', 'gantt-content-task'];
             if (id && !this.activeID && classNames.includes(e.target.className.split(' ')[0])) {
                 const task = gantt.getTask(id);
-                const hasTasks = !gantt.getTaskByTime().every(({type}) => type === 'project');
-                if (hasTasks && task.type === 'project') return false;
+                const isExpanded = e.target.className.split(' ').includes('gantt-expanded');
+                if (isExpanded && task.type === 'project') return false;
 
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = e.pageX - e.offsetX;
                 const y = e.pageY - e.offsetY;
                 const targetWidth = e.currentTarget.offsetWidth;
                 // `true` if sidebar collapsed otherwise
-                if (this.context) {
-                    if (hasTasks) {
+                if (this.props.sidebarCollapsed) {
+                    if (isExpanded) {
                         const {offsetLeft} = e.target.offsetParent;
 
                         if (e.x > window.innerWidth / 2)
@@ -122,10 +128,9 @@ export default class GanttChart extends Component {
                             task.x = x + rect.left + (e.x - window.innerWidth / 3) - 90;
                     }
                 } else {
-                    if (hasTasks) {
+                    if (isExpanded) {
                         const {offsetLeft} = e.target.offsetParent;
 
-                        console.log((e.offsetX > targetWidth * (2 / 3)), (e.offsetX > targetWidth / 2), (e.offsetX > targetWidth * (1 / 3)))
                         if (e.offsetX > targetWidth * (2 / 3))
                             task.x = offsetLeft + rect.left + e.offsetX + 200;
                         else if (e.offsetX > targetWidth / 2)
@@ -235,25 +240,31 @@ export default class GanttChart extends Component {
     render() {
         const {display, tooltip} = this.state;
         return (
-            <div>
-                <div
-                    ref={(input) => {
-                        this.ganttContainer = input
-                    }}
-                    style={{width: '100%', height: '80vh', overflow: 'scroll'}}
-                />
+            <DatasetContext.Consumer>
                 {
-                    display ?
-                        <div style={{
-                            position: 'absolute',
-                            left: tooltip.x + 'px',
-                            top: tooltip.y + 'px',
-                        }}>
-                            <Tooltip task={tooltip}/>
+                    dataset => (
+                        <div>
+                            <div
+                                ref={(input) => {
+                                    this.ganttContainer = input
+                                }}
+                                style={{width: '100%', height: '80vh', overflow: 'scroll'}}
+                            />
+                            {
+                                display ?
+                                    <div style={{
+                                        position: 'absolute',
+                                        left: tooltip.x + 'px',
+                                        top: tooltip.y + 'px',
+                                    }}>
+                                        <Tooltip task={tooltip}/>
+                                    </div>
+                                    : null
+                            }
                         </div>
-                        : null
+                    )
                 }
-            </div>
+            </DatasetContext.Consumer>
         );
     }
 }
