@@ -9,9 +9,10 @@ export interface AutocompleteResourceItem {
 
 type AutocompleteProps = {
     resourceList: AutocompleteResourceItem[];
+    loading: boolean
 };
 
-export const Autocomplete: React.FC<AutocompleteProps> = ({resourceList}) => {
+export const Autocomplete: React.FC<AutocompleteProps> = ({resourceList, loading}) => {
     const _format = (item: AutocompleteResourceItem) => {
         const {type, name} = item;
         const typeStr = type ? (type + ': ') : '';
@@ -28,7 +29,7 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({resourceList}) => {
                 items={resourceList}
                 formatResult={_format}
                 maxResults={100}
-                showNoResultsText="找不到符合的資料"
+                showNoResultsText={loading ? '資料載入中' : '找不到符合的資料'}
                 autoFocus={true}
             />
         </div>

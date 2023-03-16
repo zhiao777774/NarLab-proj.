@@ -1,4 +1,4 @@
-import React, {useState, forwardRef, useContext} from 'react';
+import React, {useState, forwardRef, useContext, useEffect} from 'react';
 import {Button, InputGroup, FormControl, Form} from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
@@ -28,10 +28,35 @@ export const SearchForm = forwardRef<any, { searchType: SearchType }>(
                 selected: true
             }
         });
-        const departments = getDepartments();
+        const [loading, setLoading] = useState<boolean>(true);
+        const [departments, setDepartments] = useState<string[]>([]);
         const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+        const [searchKeywords, setSearchKeywords] = useState<AutocompleteResourceItem[]>([]);
 
-        const searchKeywords: AutocompleteResourceItem[] = loadKeywords(searchSelected);
+        useEffect(() => {
+            const fetchDepartments = async () => {
+                setLoading(true);
+                const dep = await getDepartments();
+                const keywords = await loadKeywords(searchSelected);
+                // @ts-ignore
+                setDepartments(dep);
+                setSearchKeywords(keywords);
+                setLoading(false);
+            }
+            fetchDepartments();
+        }, []);
+
+        useEffect(() => {
+            const fetchKeywords = async () => {
+                setLoading(true);
+                const keywords = await loadKeywords(searchSelected);
+                setSearchKeywords(keywords);
+                setLoading(false);
+            }
+            fetchKeywords();
+        }, [searchSelected])
+
+
         const search = (event: any) => {
             event.preventDefault();
 
@@ -97,7 +122,7 @@ export const SearchForm = forwardRef<any, { searchType: SearchType }>(
                                         <Button variant="dark" onClick={() => setSearchString([''])}>Reset</Button>
                                     </InputGroup>
                                     :
-                                    <Autocomplete resourceList={searchKeywords}/>
+                                    <Autocomplete resourceList={searchKeywords} loading={loading}/>
                             }
                             <Form.Group className="mt-3">
                                 {
@@ -221,7 +246,7 @@ export const SearchForm = forwardRef<any, { searchType: SearchType }>(
                                         onSelect={(selectedList) => setSelectedDepartments(selectedList)}
                                         onRemove={(selectedList) => setSelectedDepartments(selectedList)}
                                         placeholder={selectedDepartments.length ? "選擇更多部會" : "未選擇部會"}
-                                        emptyRecordMsg="找不到部會"
+                                        emptyRecordMsg={loading ? '部會資料載入中' : '找不到部會'}
                                     />
                                 </div>
                             </div>
