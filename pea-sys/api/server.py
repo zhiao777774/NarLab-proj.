@@ -21,8 +21,8 @@ app.add_middleware(
 db_conn = MongoDB()
 
 
-@app.get('/tfidf')
-@app.post('/tfidf')
+@app.get('/api/tfidf')
+@app.post('/api/tfidf')
 def get_tfidf(req: QueryRequestModel, request: Request):
     cond = req.condition if request.method.upper() == 'POST' else {}
     res = []
@@ -32,8 +32,8 @@ def get_tfidf(req: QueryRequestModel, request: Request):
     return {d['code']: d for d in res}
 
 
-@app.get('/dataset')
-@app.post('/dataset')
+@app.get('/api/dataset')
+@app.post('/api/dataset')
 def get_dataset(req: DatasetRequestModel, request: Request):
     cond = req.condition if request.method.upper() == 'POST' else {}
     load_combined = req.combined
@@ -48,16 +48,16 @@ def get_dataset(req: DatasetRequestModel, request: Request):
         return res
 
 
-@app.get('/category/stat')
-@app.post('/category/stat')
+@app.get('/api/category/stat')
+@app.post('/api/category/stat')
 def get_category_stat(req: QueryRequestModel, request: Request):
     cond = req.condition if request.method.upper() == 'POST' else {}
     res = db_conn.find('category_stat', cond)
     return {d['name']: d['data'] for d in res}
 
 
-@app.get('/category/prob')
-@app.post('/category/prob')
+@app.get('/api/category/prob')
+@app.post('/api/category/prob')
 def get_category_prob(req: QueryRequestModel, request: Request):
     cond = req.condition if request.method.upper() == 'POST' else {}
     res = []
@@ -72,8 +72,8 @@ def preprocess(req: ActionRequestModel):
     return preproc_module.combine(pd.DataFrame.from_dict(req.data))
 
 
-@app.patch('/store')
-@app.post('/store')
+@app.patch('/api/store')
+@app.post('/api/store')
 def store(req: ActionRequestModel, request: Request):
     req_data = req.data
     if request.method.upper() == 'POST':
