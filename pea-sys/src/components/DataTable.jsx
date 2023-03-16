@@ -301,9 +301,11 @@ export default class DataTable extends Component {
                                                         :
                                                         <Button variant="outline-danger" size="sm"
                                                                 onClick={() => {
-                                                                    this.setState({
-                                                                        editedID: id
-                                                                    });
+                                                                    if (editedID) {
+                                                                        alert('資料編輯中');
+                                                                        return;
+                                                                    }
+                                                                    this.setState({editedID: id});
                                                                 }}>
                                                             <FontAwesomeIcon icon={faPenToSquare}/>
                                                         </Button>

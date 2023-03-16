@@ -100,7 +100,7 @@ export default function LabelingPlatform() {
                 level: 3,
                 type: 'task',
                 data: {
-                    category: [category],
+                    category: category.split(';'),
                     ...data,
                     keyword: chineseKeyword,
                     tfidf: {

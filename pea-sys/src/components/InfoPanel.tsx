@@ -46,7 +46,7 @@ export const InfoPanel: React.FC<{ task: Task; setCurTask: Function; }> = ({task
                 {
                     <div className={styles.infoPanelTag}>
                         {
-                            target.data.keyword && (
+                            target.data?.keyword && (
                                 <Alert variant="warning">
                                     <Alert.Heading>
                                         <AiOutlineKey className="me-1"/>
@@ -67,7 +67,7 @@ export const InfoPanel: React.FC<{ task: Task; setCurTask: Function; }> = ({task
                             )
                         }
                         {
-                            target.data.tfidf.CH.length ?
+                            target.data.tfidf.CH && target.data.tfidf.CH.length ?
                                 <Alert variant="primary">
                                     <Alert.Heading>
                                         <HiDocumentMagnifyingGlass className="me-1"/>
@@ -86,7 +86,7 @@ export const InfoPanel: React.FC<{ task: Task; setCurTask: Function; }> = ({task
                                 : null
                         }
                         {
-                            target.data.tfidf.EN.length ?
+                            target.data.tfidf.EN && target.data.tfidf.EN.length ?
                                 <Alert variant="danger">
                                     <Alert.Heading>
                                         <HiDocumentMagnifyingGlass className="me-1"/>

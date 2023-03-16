@@ -95,15 +95,15 @@ export async function loadData(condition: Array<any> | null = null): Promise<Tas
                 progress: 1,
                 color: TASK_COLOR,
                 data: {
-                    keyword: proj.chineseKeyword,
+                    keyword: proj.chineseKeyword.trim(),
                     tfidf: {
-                        ...tfIdf[proj.code].data
+                        ...tfIdf[proj.code]?.data
                     },
-                    description: proj.description.replaceAll('_x000D_', '\n'),
+                    description: proj.description.trim().replaceAll('_x000D_', '\n'),
                     department: proj.department,
                     // 目前只取前三高的類別與機率
-                    category: catProb[proj.code]['predictCategoryTop5'].slice(0, 3),
-                    categoryProb: catProb[proj.code]['predictProbabilityTop5'].slice(0, 3)
+                    category: catProb[proj.code] && catProb[proj.code]['predictCategoryTop5'].slice(0, 3),
+                    categoryProb: catProb[proj.code] && catProb[proj.code]['predictProbabilityTop5'].slice(0, 3)
                         .map((prob: string) => Number(prob))
                 }
             } as Task;
