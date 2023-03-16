@@ -136,5 +136,4 @@ def shutdown_event():
 
 
 if __name__ == '__main__':
-    port = 8090
-    uvicorn.run(app='server:app', host='127.0.0.1', port=port, reload=True)
+    uvicorn.run(app='server:app', reload=True)

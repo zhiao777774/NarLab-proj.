@@ -80,7 +80,7 @@ export default function LabelingPlatform() {
             jsonData = XLSX.utils.sheet_to_json(worksheet);
         }
 
-        const res = await fetch('http://localhost:8090/preprocess', {
+        const res = await fetch('http://localhost:8000/preprocess', {
             method: 'POST',
             headers: {
                 'Access-Control-Allow-Origin': '*',
@@ -134,7 +134,7 @@ export default function LabelingPlatform() {
                     ...reservedData,
                 };
             });
-        const res = await fetch('http://localhost:8090/store', {
+        const res = await fetch('http://localhost:8000/store', {
             method: isRevision ? 'PATCH' : 'POST',
             headers: {
                 'Access-Control-Allow-Origin': '*',

@@ -10,7 +10,7 @@ export async function loadData(condition: Array<any> | null = null): Promise<Tas
     const tasks: Task[] = [];
     const [projectData, catSeries, catProb, tfIdf] = await Promise.all(
         ['/dataset', '/category/stat', '/category/prob', '/tfidf']
-            .map(url => fetch('http://localhost:8090' + url, {
+            .map(url => fetch('http://localhost:8000' + url, {
                 method: 'POST',
                 headers: {
                     'Access-Control-Allow-Origin': '*',
@@ -217,7 +217,7 @@ export function filterBy(tasks: Task[], condition: Array<any> | null = null) {
 export async function loadDataByCategory(cat: string): Promise<Task[]> {
     const [projectData, catProb, tfIdf] = await Promise.all(
         ['/dataset', '/category/prob', '/tfidf']
-            .map(url => fetch('http://localhost:8090' + url, {
+            .map(url => fetch('http://localhost:8000' + url, {
                 method: 'POST',
                 headers: {
                     'Access-Control-Allow-Origin': '*',
@@ -304,7 +304,7 @@ export async function loadDataByCategory(cat: string): Promise<Task[]> {
 export async function loadKeywords(searchSelected: AutocompleteSearchSource): Promise<AutocompleteResourceItem[]> {
     const [projectData, catProb] = await Promise.all(
         ['/dataset', '/category/prob']
-            .map((url, i) => fetch('http://localhost:8090' + url, {
+            .map((url, i) => fetch('http://localhost:8000' + url, {
                 method: 'POST',
                 headers: {
                     'Access-Control-Allow-Origin': '*',
@@ -347,7 +347,7 @@ export async function loadKeywords(searchSelected: AutocompleteSearchSource): Pr
 }
 
 export async function getDepartments() {
-    const res = await fetch('http://localhost:8090/dataset', {
+    const res = await fetch('http://localhost:8000/dataset', {
         method: 'POST',
         headers: {
             'Access-Control-Allow-Origin': '*',
