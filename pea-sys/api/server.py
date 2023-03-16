@@ -37,8 +37,15 @@ def get_tfidf(req: QueryRequestModel, request: Request):
 def get_dataset(req: DatasetRequestModel, request: Request):
     cond = req.condition if request.method.upper() == 'POST' else {}
     load_combined = req.combined
-    res = db_conn.find('dataset_combine' if load_combined else 'dataset', cond)
-    return {d['project']: d['data'] for d in res} if load_combined else res
+    if load_combined:
+        res = db_conn.find('dataset_combine', cond)
+        return {d['project']: d['data'] for d in res}
+    else:
+        res = []
+        for d_tfidf in db_conn.find('dataset', cond):
+            d_tfidf['_id'] = str(d_tfidf['_id'])
+            res.append(d_tfidf)
+        return res
 
 
 @app.get('/category/stat')
