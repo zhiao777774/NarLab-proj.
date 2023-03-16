@@ -5,7 +5,12 @@ import DatePicker, {registerLocale} from 'react-datepicker';
 import {InfoPanel} from '../../components/InfoPanel';
 import GanttChart from '../../components/GanttChart';
 import {loadData, filterBy} from '../../utils/dataLoader';
-import {SearchPopupPanelContext, SearchDataContext} from '../../helpers/contexts';
+import {
+    SearchPopupPanelContext,
+    SearchDataContext,
+    DatasetContext,
+    SidebarCollapsedContext
+} from '../../helpers/contexts';
 import {Project, Task} from '../../constants/types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -14,6 +19,7 @@ import tw from 'date-fns/locale/zh-TW';
 registerLocale('zh-TW', tw);
 
 export default function Gantt() {
+    const sidebarCollapsed = useContext(SidebarCollapsedContext);
     const {setOpenPanel} = useContext(SearchPopupPanelContext);
     const {searchData, setSearchData} = useContext(SearchDataContext);
 
@@ -113,6 +119,7 @@ export default function Gantt() {
         }
 
         setCurTask(target);
+        setLoading(false);
     };
 
     const changeDepartments = (selectedList: string[]) => {
@@ -230,129 +237,131 @@ export default function Gantt() {
     // TODO: 剩餘Bug為無法將搜尋結果與部會選項結合，以及進行搜尋選擇時部會選項不會初始化
     //       試過在resetDisplayedTask放入setSelectedDepartments([])，但會因為各種effect連動的關係導致搜尋結果跳掉
     return (
-        <Row className="card-margin-top m-auto align-self-center">
-            {
-                !loading ?
-                    <Col>
-                        <Card className="m-auto" style={{width: "auto"}}>
-                            {
-                                <Row style={{margin: "30px 20px 10px 5px"}}>
-                                    <Col xs={2}>
-                                        <div className="d-inline-block">
-                                            <DatePicker selectsRange closeOnScroll
-                                                        locale="zh-TW"
-                                                        showYearPicker={true}
-                                                        withPortal={false}
-                                                        selected={displayedDate.start}
-                                                        startDate={displayedDate.start}
-                                                        endDate={displayedDate.end}
-                                                        onChange={handleDateChange}
-                                                        minDate={new Date(minDataYear, 0)}
-                                                        maxDate={new Date(maxDataYear, 0)}
-                                                        yearItemNumber={9}
-                                                        shouldCloseOnSelect={false}
-                                                        customInput={
-                                                            <button className="btn btn-outline-dark"
-                                                                    style={{
-                                                                        borderTopRightRadius: 0,
-                                                                        borderBottomRightRadius: 0
-                                                                    }}
-                                                            >
-                                                                {`${startYear} - ${endYear}`}
-                                                            </button>
-                                                        }
-                                            />
-                                        </div>
-                                        <Button variant="dark" onClick={() => setDisplayedDate({
-                                            start: new Date(minDataYear, 0),
-                                            end: new Date(maxDataYear, 0)
-                                        })}
-                                                style={{
-                                                    borderTopLeftRadius: 0,
-                                                    borderBottomLeftRadius: 0
-                                                }}>
-                                            Reset
-                                        </Button>
-                                    </Col>
-                                    <Col xs={5}>
-                                        <MultiSelect
-                                            options={departments}
-                                            isObject={false}
-                                            showCheckbox={true}
-                                            showArrow={true}
-                                            selectedValues={selectedDepartments}
-                                            onSelect={(selectedList) => changeDepartments(selectedList)}
-                                            onRemove={(selectedList) => changeDepartments(selectedList)}
-                                            placeholder={selectedDepartments.length ? "選擇更多部會" : "未選擇部會"}
-                                            emptyRecordMsg="找不到部會"
-                                            style={{
-                                                inputField: {
-                                                    height: '100%'
-                                                }
-                                            }}
-                                        />
-                                    </Col>
-                                    <Col xs={5}>
-                                        <InputGroup>
-                                            <div>
-                                                <SearchInput
-                                                    ref={searchInputRef}
-                                                    handleSearchEvent={searchTaskName}
-                                                    handleResetEvent={reset}
+        <DatasetContext.Provider value={allTasks}>
+            <Row className="card-margin-top m-auto align-self-center">
+                {
+                    !loading ?
+                        <Col>
+                            <Card className="m-auto" style={{width: "auto"}}>
+                                {
+                                    <Row style={{margin: "30px 20px 10px 5px"}}>
+                                        <Col xs={2}>
+                                            <div className="d-inline-block">
+                                                <DatePicker selectsRange closeOnScroll
+                                                            locale="zh-TW"
+                                                            showYearPicker={true}
+                                                            withPortal={false}
+                                                            selected={displayedDate.start}
+                                                            startDate={displayedDate.start}
+                                                            endDate={displayedDate.end}
+                                                            onChange={handleDateChange}
+                                                            minDate={new Date(minDataYear, 0)}
+                                                            maxDate={new Date(maxDataYear, 0)}
+                                                            yearItemNumber={9}
+                                                            shouldCloseOnSelect={false}
+                                                            customInput={
+                                                                <button className="btn btn-outline-dark"
+                                                                        style={{
+                                                                            borderTopRightRadius: 0,
+                                                                            borderBottomRightRadius: 0
+                                                                        }}
+                                                                >
+                                                                    {`${startYear} - ${endYear}`}
+                                                                </button>
+                                                            }
                                                 />
                                             </div>
-                                            <Button className="ms-4 rounded-2" variant="warning"
-                                                    onClick={() => setOpenPanel(true)}>
-                                                More Filters
+                                            <Button variant="dark" onClick={() => setDisplayedDate({
+                                                start: new Date(minDataYear, 0),
+                                                end: new Date(maxDataYear, 0)
+                                            })}
+                                                    style={{
+                                                        borderTopLeftRadius: 0,
+                                                        borderBottomLeftRadius: 0
+                                                    }}>
+                                                Reset
                                             </Button>
-                                        </InputGroup>
-                                    </Col>
-                                </Row>
-                            }
-                            <Card.Body className="m-auto  align-self-center">
-                                <div className="p-auto" style={{width: 'auto', minWidth: '70vw', maxWidth: '80vw'}}>
-                                    {
-                                        (displayTasks.length === 0 ? "empty" :
-                                                <GanttChart
-                                                    tasks={displayTasks.filter((t) => {
-                                                        return t.type === 'project' ||
-                                                            (
-                                                                t.start >= new Date(ceStartYear, 0)
-                                                            )
-                                                    }).map((t) => {
-                                                        if (t.level === 1) {
-                                                            return {
-                                                                ...t,
-                                                                start_date: `${ceStartYear}-1-1`,
-                                                                duration: new Date(ceStartYear, 0)
-                                                                    .diffYear(new Date(ceEndYear, 0))
-                                                            };
-                                                        } else {
-                                                            const {start, end, ...data} = t;
-                                                            return {
-                                                                ...data,
-                                                                start,
-                                                                end,
-                                                                start_date: `${start.getFullYear()}-1-1`,
-                                                                duration: start.diffYear(end)
-                                                            };
-                                                        }
-                                                    })}
-                                                    projects={getProjects()}
-                                                    startYear={ceStartYear}
-                                                    endYear={ceEndYear + 1}
-                                                    clickEvent={handleExpanderClick}
-                                                />
-                                        )
-                                    }
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                    :
-                    <span>資料載入 / 查詢中...</span>
-            }
-            <span>
+                                        </Col>
+                                        <Col xs={5}>
+                                            <MultiSelect
+                                                options={departments}
+                                                isObject={false}
+                                                showCheckbox={true}
+                                                showArrow={true}
+                                                selectedValues={selectedDepartments}
+                                                onSelect={(selectedList) => changeDepartments(selectedList)}
+                                                onRemove={(selectedList) => changeDepartments(selectedList)}
+                                                placeholder={selectedDepartments.length ? "選擇更多部會" : "未選擇部會"}
+                                                emptyRecordMsg="找不到部會"
+                                                style={{
+                                                    inputField: {
+                                                        height: '100%'
+                                                    }
+                                                }}
+                                            />
+                                        </Col>
+                                        <Col xs={5}>
+                                            <InputGroup>
+                                                <div>
+                                                    <SearchInput
+                                                        ref={searchInputRef}
+                                                        handleSearchEvent={searchTaskName}
+                                                        handleResetEvent={reset}
+                                                    />
+                                                </div>
+                                                <Button className="ms-4 rounded-2" variant="warning"
+                                                        onClick={() => setOpenPanel(true)}>
+                                                    More Filters
+                                                </Button>
+                                            </InputGroup>
+                                        </Col>
+                                    </Row>
+                                }
+                                <Card.Body className="m-auto  align-self-center">
+                                    <div className="p-auto" style={{width: 'auto', minWidth: '70vw', maxWidth: '80vw'}}>
+                                        {
+                                            (displayTasks.length === 0 ? "empty" :
+                                                    <GanttChart
+                                                        tasks={displayTasks.filter((t) => {
+                                                            return t.type === 'project' ||
+                                                                (
+                                                                    t.start >= new Date(ceStartYear, 0)
+                                                                )
+                                                        }).map((t) => {
+                                                            if (t.level === 1) {
+                                                                return {
+                                                                    ...t,
+                                                                    start_date: `${ceStartYear}-1-1`,
+                                                                    duration: new Date(ceStartYear, 0)
+                                                                        .diffYear(new Date(ceEndYear, 0))
+                                                                };
+                                                            } else {
+                                                                const {start, end, ...data} = t;
+                                                                return {
+                                                                    ...data,
+                                                                    start,
+                                                                    end,
+                                                                    start_date: `${start.getFullYear()}-1-1`,
+                                                                    duration: start.diffYear(end)
+                                                                };
+                                                            }
+                                                        })}
+                                                        projects={getProjects()}
+                                                        startYear={ceStartYear}
+                                                        endYear={ceEndYear + 1}
+                                                        clickEvent={handleExpanderClick}
+                                                        sidebarCollapsed={sidebarCollapsed}
+                                                    />
+                                            )
+                                        }
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                        :
+                        <span>資料載入 / 查詢中...</span>
+                }
+                <span>
                 {
                     (curTask != null && curTask.level === 2) ?
                         <InfoPanel
@@ -361,7 +370,8 @@ export default function Gantt() {
                         /> : null
                 }
             </span>
-        </Row>
+            </Row>
+        </DatasetContext.Provider>
     )
 }
 
