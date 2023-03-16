@@ -2,13 +2,13 @@ from typing import Union
 from pydantic import BaseModel
 
 
-class RequestData(BaseModel):
+class ActionRequestModel(BaseModel):
     data: Union[list, dict]
 
 
-class BasicSearchData(BaseModel):
+class QueryRequestModel(BaseModel):
     condition: Union[list, dict]
 
 
-class SearchDataForDataset(BasicSearchData):
+class DatasetRequestModel(QueryRequestModel):
     combined: bool = True
