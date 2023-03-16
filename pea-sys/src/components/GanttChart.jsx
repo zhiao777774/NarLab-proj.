@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {gantt} from 'dhtmlx-gantt';
 import {Tooltip} from './Tooltip';
-import {loadDataByCategory} from '../utils/dataLoader';
 import {DatasetContext} from '../helpers/contexts';
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
 

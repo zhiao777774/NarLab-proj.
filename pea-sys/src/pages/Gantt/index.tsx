@@ -11,7 +11,7 @@ import {
     DatasetContext,
     SidebarCollapsedContext
 } from '../../helpers/contexts';
-import {Project, Task} from '../../constants/types';
+import {Task} from '../../constants/types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import tw from 'date-fns/locale/zh-TW';
@@ -32,16 +32,6 @@ export default function Gantt() {
     const [departments, setDepartments] = useState<string[]>([]);
     const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
 
-    // const minYearInData = allTasks.reduce(
-    //     (prev, curr) => prev.start_date < curr.start_date ? prev : curr).start;
-    // const minDataYear = minYearInData.toRepublicYear().getFullYear();
-    // const maxYearInData = allTasks.reduce(
-    //     (prev, curr) => prev.end < curr.end ? curr : prev).end;
-    // const maxDataYear = maxYearInData.toRepublicYear().getFullYear();
-    // const [displayedDate, setDisplayedDate] = useState<{ start: Date, end: Date }>({
-    //     start: new Date(minDataYear, 0),
-    //     end: new Date(maxDataYear, 0)
-    // });
     const [minDataYear, setMinDataYear] = useState<number>(new Date().getFullYear());
     const [maxDataYear, setMaxDataYear] = useState<number>(new Date().getFullYear());
     const [displayedDate, setDisplayedDate] = useState<{ start: Date, end: Date }>({
