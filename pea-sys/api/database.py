@@ -1,13 +1,8 @@
-import os
-import dotenv
 import pymongo
+from typing import Union
 from ssh_pymongo import MongoSession
 
-dotenv.load_dotenv()
-
-
-def get_env(var: str) -> str:
-    return os.getenv(var)
+from utils import get_env
 
 
 class MongoDB:
@@ -22,7 +17,7 @@ class MongoDB:
         self.session: MongoSession = None
         self.db: pymongo.database.Database = None
 
-    def __getitem__(self, col_name: str) -> pymongo.database.Collection:
+    def __getitem__(self, col_name: str) -> pymongo.collection.Collection:
         return self.db[col_name]
 
     def connect(self, db_name: str) -> None:
@@ -38,6 +33,19 @@ class MongoDB:
 
     def close(self) -> None:
         self.session.stop()
+
+    def find(self, col_name: str, condition: dict) -> list:
+        return list(self.db[col_name].find(condition))
+
+    def insert(self, col_name: str, data: Union[dict, list]):
+        if isinstance(data, dict):
+            return self.db[col_name].insert_one(data)
+        return self.db[col_name].insert_many(data)
+
+    def update(self, col_name: str, condition: dict, updated: Union[dict, list]):
+        if isinstance(updated, dict):
+            return self.db[col_name].update_one(condition, updated)
+        return self.db[col_name].update_many(condition, updated)
 
 
 if __name__ == '__main__':
