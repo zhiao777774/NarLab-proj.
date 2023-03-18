@@ -7,12 +7,8 @@ from argparse import ArgumentParser
 def isNaN(string):
     return string != string
 
-def main(args):
+def main(args, data, tfidf):
     start = time.time()
-    
-    data = pd.read_excel(args.data)
-    with open(args.keyword, 'r') as f:
-        tfidf = json.load(f)
 
     class_name = ['AI、雲端、巨量資料', '虛擬實境', '人才補助與延攬',  '工研院與A+', '中小（堅）企業輔導', 
                 '化工材料與循環經濟', '能源', '太空/衛星', '文化', '水資源管理', '生技醫藥與精準醫療',
@@ -32,9 +28,9 @@ def main(args):
         for idx, row in data.iterrows():
             if isNaN(row['系統編號']) == False:
                 if row['新標籤'] == c:
-                    for key, value in tfidf.items():
-                        if key == row['系統編號']:
-                            for ch in value['tfidf']['CH']:                   
+                    for t in tfidf:
+                        if t['code'] == row['系統編號']:
+                            for ch in t['data']['CH']:                   
                                 tfidf_str += ch + ' '
 
         if tfidf_str != '':
@@ -51,9 +47,9 @@ def main(args):
         if isNaN(row['系統編號']) == False:
             if isinstance(row['中文關鍵詞'], str):
                 if '虛擬實境' in row['中文關鍵詞']:
-                    for key, value in tfidf.items():
-                        if key == row['系統編號']:
-                            for ch in value['tfidf']['CH']:                   
+                    for t in tfidf:
+                        if t['code'] == row['系統編號']:
+                            for ch in t['data']['CH']:                   
                                 tfidf_str += ch + ' '
 
     if tfidf_str != '':
@@ -72,11 +68,11 @@ if __name__ == '__main__':
                         type=str,
                         dest='data',
                         help='path to data')
-    parser.add_argument('--keyword',
-                        default='./data/folder_nar/tfidf.json',
+    parser.add_argument('--tfidf',
+                        default='./data/result/tfidf.json',
                         type=str,
-                        dest='keyword',
-                        help='path to keyword file')
+                        dest='tfidf',
+                        help='path to tfidf json file')
     parser.add_argument('--font',
                         default='./wordcloud/NotoSansTC-Regular.otf',
                         type=str,
@@ -89,4 +85,7 @@ if __name__ == '__main__':
                         help='path to save wordcloud images')
     
     args = parser.parse_args()
-    main(args)
+    data = pd.read_excel(args.data)
+    with open(args.tfidf, 'r') as f:
+        tfidf = json.load(f)
+    main(args, data, tfidf)

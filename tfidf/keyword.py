@@ -26,8 +26,7 @@ def find_noun(seg_list, pos_list):
 
     return tmp
 
-def main(args):
-    data = pd.read_excel(args.data)
+def main(data):
     clean_seg = []
     
     # ch keywords
@@ -111,20 +110,16 @@ def main(args):
 
 
     # write json
-    all = dict()
+    all = []
 
     for idx, row in data.iterrows():
         if isNaN(row['系統編號']) == False:
             d = dict()
             d['code'] = row['系統編號']
             d['name'] = row['計畫完整中文名稱']
-            d['tfidf'] = {'EN': eng_keywords[idx], 'CH': keywords[idx]}
+            d['data'] = {'EN': eng_keywords[idx], 'CH': keywords[idx]}
 
-            all[row['系統編號']] = d
-
-    f = open(args.keyword, 'w', encoding='utf8')
-    json.dump(all, f, indent=4, ensure_ascii=False)
-    f.close()
+            all.append(d)
 
     return all
 
@@ -137,11 +132,7 @@ if __name__ == '__main__':
                         type=str,
                         dest='data',
                         help='path to data')
-    parser.add_argument('--keyword',
-                        default='./data/folder_nar/tfidf.json',
-                        type=str,
-                        dest='keyword',
-                        help='path to save keyword file')
     
     args = parser.parse_args()
-    main(args)
+    data = pd.read_excel(args.data)
+    main(data)
