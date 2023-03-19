@@ -1,11 +1,13 @@
-import os
+import sys, os
 import pandas as pd
 import time
 from ckiptagger import WS, POS
 from sklearn.feature_extraction.text import TfidfVectorizer
 import re
-import json
 from argparse import ArgumentParser
+
+sys.path.append(os.getcwd())
+from preprocessing import feature_mapping
 
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
@@ -33,9 +35,9 @@ def main(data):
     start = time.time()
 
     for idx, row in data.iterrows():
-        if isNaN(row['系統編號']) == False:
-            if type(row['計畫重點描述']) == str:
-                sen = row['計畫重點描述'].replace('_x000D_', '\n')
+        if isNaN(row['code']) == False:
+            if type(row['description']) == str:
+                sen = row['description'].replace('_x000D_', '\n')
                 sen = sen.split('\n')
             
                 seg_list = ws(sen)
@@ -86,9 +88,9 @@ def main(data):
     other = re.compile(r'^[0-9_&²/]+$')
 
     for idx, row in data.iterrows():
-        if isNaN(row['系統編號']) == False:
-            if type(row['計畫重點描述']) == str:
-                tmp = eng.findall(row['計畫重點描述'].replace('_x000D_', '\n'))
+        if isNaN(row['code']) == False:
+            if type(row['description']) == str:
+                tmp = eng.findall(row['description'].replace('_x000D_', '\n'))
                 others = []
                 final1 = []
                 final2 = []
@@ -113,10 +115,10 @@ def main(data):
     all = []
 
     for idx, row in data.iterrows():
-        if isNaN(row['系統編號']) == False:
+        if isNaN(row['code']) == False:
             d = dict()
-            d['code'] = row['系統編號']
-            d['name'] = row['計畫完整中文名稱']
+            d['code'] = row['code']
+            d['name'] = row['name']
             d['data'] = {'EN': eng_keywords[idx], 'CH': keywords[idx]}
 
             all.append(d)
@@ -135,4 +137,6 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     data = pd.read_excel(args.data)
+    data = feature_mapping(data)
+
     main(data)
