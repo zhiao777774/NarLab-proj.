@@ -24,10 +24,11 @@ def find_class(data):
 
     return class_name
 
-def main(data, tfidf, font, wc):
+def main(data, tfidf, wc):
     start = time.time()
 
     class_name = find_class(data)
+    font = './wordcloud/NotoSansTC-Regular.otf'
     i = 0
 
     for c in class_name:
@@ -61,7 +62,7 @@ def main(data, tfidf, font, wc):
                                 tfidf_str += ch + ' '
 
     if tfidf_str != '':
-        wordcloud = WordCloud(background_color='white', contour_width=1, contour_color='steelblue', font_path=font_path).generate(tfidf_str)
+        wordcloud = WordCloud(background_color='white', contour_width=1, contour_color='steelblue', font_path=font).generate(tfidf_str)
         wordcloud.to_file(args.wordcloud + '1.png')
 
     end = time.time()
@@ -92,7 +93,5 @@ if __name__ == '__main__':
     data = feature_mapping(data)
     with open(args.tfidf, 'r') as f:
         tfidf = json.load(f)
-
-    font = './wordcloud/NotoSansTC-Regular.otf'
     
-    main(data, tfidf, font, args.wordcloud)
+    main(data, tfidf, args.wordcloud)
