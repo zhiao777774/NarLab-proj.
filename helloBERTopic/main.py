@@ -7,6 +7,12 @@ from transformers import AutoModelForTokenClassification
 from utils import EXPORT_PATH, set_up, DATA_PATH
 from halo import Halo
 from termcolor import colored
+import re
+
+def find_chinese(file):
+    pattern = re.compile(r'[^\u4e00-\u9fa5]')
+    chinese = re.sub(pattern, '', file)
+    return chinese
 
 if __name__ == "__main__":
     
@@ -15,14 +21,19 @@ if __name__ == "__main__":
     
     # 設定 Huging Face Pretrained Model
     MODEL_NAME = "ckiplab/bert-base-chinese-ws"        
-    top_n_topics = 20
+    top_n_topics = 10
     
     # 讀取 CKIP 斷詞模型
     ws = WS(str(DATA_PATH))
     
     # 讀取資料
     df = pd.read_csv(DATA_PATH / "data.csv")
-    df = df[["year", "name", "label", "description"]]
+    labels = list(set(df['labels']))
+    dic=dict(zip(labels,[i for i,j in enumerate(labels)]))
+    print(dic)
+    df['labels'] = [dic[i] for i in df['labels']]
+    
+    # df = df[["年度", "計畫完整中文名稱", "新標籤", "計畫重點描述"]]
     
     # 取出斷詞關鍵字
     keysfile = DATA_PATH / "keys.txt"
@@ -35,6 +46,8 @@ if __name__ == "__main__":
     
     # 我們取原始資料中的'description'欄位來當作訓練資料
     sentence_list = df["description"].tolist()
+    sentence_list = [find_chinese(i) for i in sentence_list]
+
     # 讀取data.csv檔案中的 year 資料，作為我們的timestamp
     timestamps = df.year.tolist()
     
@@ -45,7 +58,7 @@ if __name__ == "__main__":
     word_sentence_list = ws(
         sentence_list,
         sentence_segmentation = True,
-        segment_delimiter_set = {",", "。", ":", "?", "!", ";", "、", "！", "？", "：", "，", "；", "‧", " "},
+        segment_delimiter_set = {",", "。", ":", "?", "!", ";", "、", "！", "？", "：", "，", "；", "‧"},
         recommend_dictionary = dictionary # 加入斷詞字典
     )
     
@@ -67,12 +80,13 @@ if __name__ == "__main__":
     )
     
     # 訓練並產生資料
-    topics, probs = topic_model.fit_transform(ws)
+    topics, probs = topic_model.fit_transform(ws,y=df['labels'])
     # 產生資料時間資料
     topics_over_time = topic_model.topics_over_time(ws, topics, timestamps, nr_bins=20)
     
     # 各 Topic TF-IDF 關鍵字直方圖
     bar_fig = topic_model.visualize_barchart(
+        
         top_n_topics=top_n_topics,
         width=200,
     )

@@ -1,29 +1,36 @@
 import pandas as pd
+import sys 
+sys.path.append("..") 
+from preprocessing import feature_mapping
+
 def get_data(file):
     df=pd.read_excel(file)
-    key_words=df['中文關鍵詞']
-    sumary=df['計畫重點描述']
-    year=df['年度']
-    num=df["系統編號"]
-    # dic=dict(zip(df["計畫完整中文名稱"],df["系統編號"]))
-    df=df[["計畫完整中文名稱","新標籤"]]
+    key_words=df['chineseKeyword']
+    sumary=df['description']
+    year=df['startDate']
+    num=df["code"]
+    # dic=dict(zip(df["name"],df["code"]))
+    
+    df=df[["name","category"]]
+    
+    
     df=df.dropna()
-    for i in range(len(df["計畫完整中文名稱"])):
-        df["計畫完整中文名稱"][i]+="\n"+num[i]
-        df["計畫完整中文名稱"][i]+="\n"+str(key_words[i])
-        df["計畫完整中文名稱"][i]+="\n"+str(sumary[i])
-    dic=dict(zip(df["計畫完整中文名稱"],num))
+    for i in range(len(df["name"])):
+        df["name"][i]+="\n"+num[i]
+        df["name"][i]+="\n"+str(key_words[i])
+        df["name"][i]+="\n"+str(sumary[i])
+    dic=dict(zip(df["name"],num))
     y=[]
 
-    for line in df["新標籤"]:
+    for line in df["category"]:
         lines=line.split(";")
         for i in lines:
             if i not in y:
                 y.append(i)
     for i in y:
-        df[i]=[0 for j in range(len(df["新標籤"]))]
+        df[i]=[0 for j in range(len(df["category"]))]
 
-    for e,line in enumerate(df["新標籤"]):
+    for e,line in enumerate(df["category"]):
         lines=line.split(";")
         for i in lines:
             df[i][e]=1
@@ -33,15 +40,17 @@ def get_data(file):
     df_train,df_val=train_test_split(df_train,test_size=0.1,random_state=42)
     
     train_list=[]
-    for i in range(len(df_train["新標籤"])):
+    for i in range(len(df_train["category"])):
         buff=[]
         buff.append(df_train[i:i+1].values[0][0])
+        
         buff.append(df_train[i:i+1].values[0][2:].tolist())
+        
         train_list.append(buff)
     train_df=pd.DataFrame(train_list)
     train_df.columns = ["text", "labels"]
     val_list=[]
-    for i in range(len(df_val["新標籤"])):
+    for i in range(len(df_val["category"])):
         buff=[]
         buff.append(df_val[i:i+1].values[0][0])
         buff.append(df_val[i:i+1].values[0][2:].tolist())
@@ -50,7 +59,7 @@ def get_data(file):
     val_df.columns = ["text", "labels"]    
     # Preparing eval data
     dev_list=[]
-    for i in range(len(df_dev["新標籤"])):
+    for i in range(len(df_dev["category"])):
         buff=[]
         buff.append(df_dev[i:i+1].values[0][0])
         buff.append(df_dev[i:i+1].values[0][2:].tolist())
@@ -84,12 +93,13 @@ def output_file(fo,model,list,num_dic,y):
 
 def get_text(file):
     df=pd.read_excel(file)
-    key_words=df['中文關鍵詞']
-    sumary=df['計畫重點描述']
-    year=df['年度']
-    num=df["系統編號"]
-    # dic=dict(zip(df["計畫完整中文名稱"],df["系統編號"]))
-    df=df["計畫完整中文名稱"]
+    df=feature_mapping(df)
+    key_words=df['chineseKeyword']
+    sumary=df['description']
+    year=df['startDate']
+    num=df["code"]
+    # dic=dict(zip(df["name"],df["code"]))
+    df=df["name"]
     df=df.dropna()
     for i in range(len(df)):
         
