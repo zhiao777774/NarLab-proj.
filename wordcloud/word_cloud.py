@@ -24,11 +24,10 @@ def find_class(data):
 
     return class_name
 
-def main(args, data, tfidf):
+def main(data, tfidf, font, wc):
     start = time.time()
-    
+
     class_name = find_class(data)
-    font_path = args.font
     i = 0
 
     for c in class_name:
@@ -44,8 +43,8 @@ def main(args, data, tfidf):
 
         if tfidf_str != '':
             print(c)
-            wordcloud = WordCloud(background_color='white', contour_width=1, contour_color='steelblue', font_path=font_path).generate(tfidf_str)
-            wordcloud.to_file(args.wordcloud + str(i) + '.png')
+            wordcloud = WordCloud(background_color='white', contour_width=1, contour_color='steelblue', font_path=font).generate(tfidf_str)
+            wordcloud.to_file(wc + str(i) + '.png')
         
         i += 1
 
@@ -82,11 +81,6 @@ if __name__ == '__main__':
                         type=str,
                         dest='tfidf',
                         help='path to tfidf json file')
-    parser.add_argument('--font',
-                        default='./wordcloud/NotoSansTC-Regular.otf',
-                        type=str,
-                        dest='font',
-                        help='path to font file')
     parser.add_argument('--wordcloud',
                         default='./pea-sys/src/data/wordcloud/',
                         type=str,
@@ -98,5 +92,7 @@ if __name__ == '__main__':
     data = feature_mapping(data)
     with open(args.tfidf, 'r') as f:
         tfidf = json.load(f)
+
+    font = './wordcloud/NotoSansTC-Regular.otf'
     
-    main(args, data, tfidf)
+    main(data, tfidf, font, args.wordcloud)
