@@ -13,6 +13,7 @@ const conditionTypeMap = {
     '計畫類別': 'category',
     '關鍵字': 'keyword',
     '計畫描述': 'description',
+    '額度類別': 'quotaCategory'
 };
 const conditionType = Object.keys(conditionTypeMap);
 const conditionOperator = ['and', 'or', 'not'];
