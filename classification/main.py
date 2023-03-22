@@ -10,10 +10,10 @@ import argparse
 logging.basicConfig(level=logging.INFO)
 transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
-def main(pred_file,model_name,output_file):
+def main(df,model_name,output_file):
     
     
-    df,dic=get_text(pred_file)
+    df,dic=get_text(df)
     model=MultiLabelClassificationModel("bert",model_name,use_cuda=cuda_available)
     output_pred(output_file,df,dic,y,model)
 
@@ -29,4 +29,5 @@ if __name__=='__main__':
     args = parser.parse_args()
     y=pd.read_csv('labels.csv')
     y=y['label']
-    main(args.pred_file,args.model_name,args.output_file)
+    df=pd.read_excel(args.pred_file)
+    main(df,args.model_name,args.output_file)
