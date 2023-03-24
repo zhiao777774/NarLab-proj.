@@ -2,29 +2,36 @@ import sys, os
 import numpy as np
 import pandas as pd
 import heapq
-from dataset import load_data, NARDataset
-from halo import Halo
+from dataset import load_data
+from utils import DATA_PATH, EXPORT_PATH
 from bertopic import BERTopic
+from halo import Halo
 from ckiptagger import construct_dictionary, WS
 from argparse import ArgumentParser
-from utils import EXPORT_PATH, set_up, DATA_PATH
-from termcolor import colored
 
 sys.path.append(os.getcwd())
 from nar.util import XML_PATH
 from preprocessing import feature_mapping
 
+def isNaN(string):
+    return string != string
 
+def find_class(data_df):
+    class_name = []
+
+    for idx, row in data_df.iterrows():
+        if isNaN(row['category']) is False:
+            classes = row['category'].split(';')
+
+            for c in classes:
+                if c not in class_name:
+                    class_name.append(c)
+
+    return class_name
 
 def main(data_df):
 
-    label = ["AI、雲端、巨量資料", "虛擬實境", "人才補助與延攬", "工研院與A+", "中小(堅)企業輔導", "化工材料與循環經濟", "能源", "太空/衛星", 
-            "文化", "水資源管理", "生技醫藥與精準醫療", "產業人才培育", "自動駕駛", "災害防救", "物聯網", "網路通訊/4G/5G/5G+/6G", "防疫", 
-            "創新創業", "資安", "長照與社會福利", "政策規劃與推動", "科研計畫補助", "科研設施", "晶片半導體", "海洋科技", "食品安全與食品科技", 
-            "校園人才培育", "氣候變遷與減碳", "農業", "國家標準檢驗", "國防", "專利與智財", "設計", "智慧交通", "智慧農業", "電商與物流", 
-            "智慧製造", "智慧醫療", "智慧顯示器", "傳統產業高值化", "運輸載具", "園區管理", "農業生技", "運動科技", "數位內容", "數位學習", 
-            "數位轉型與智慧政府", "環境監測與污染防治", "職安", "警政與法務"]
-
+    label = find_class(data_df)
     total_X, y, timestamps, y_name = load_data(data_df, one_class=True)
     total_y = np.array(y)
 
@@ -40,7 +47,7 @@ def main(data_df):
     dictionary = construct_dictionary(keydict)
 
 
-    spinner = Halo(text='Tokenizing with CKIP-Tagger', spinner='dots')    
+    spinner = Halo(text='Tokenizing', spinner='dots')    
     spinner.start()
 
     # 開始斷詞
@@ -58,6 +65,7 @@ def main(data_df):
     ws = [ " ".join(w) for w in word_sentence_list]
     #print(colored(f"BERTopics Input Showcase: \n [ { ws[0] }]", 'blue'))
 
+
     topic_model = BERTopic(language = 'chinese (traditional)', verbose=True, nr_topics=51)
     topics, _ = topic_model.fit_transform(ws, y=total_y)
 
@@ -70,6 +78,11 @@ def main(data_df):
 
     #各標籤可能屬於的topic(計算相似度)
     for i in range(0, 50):
+        if (label[i] == '資安'):
+            label[i] == '機密資訊安全'
+        elif(label[i] == '職安'):
+            label[i] = '職業安全'
+
         similar_topics, similarity = topic_model.find_topics(label[i], top_n=10)
         for j in range(len(similar_topics)):
             if (similar_topics[j] == -1):
@@ -97,11 +110,8 @@ def main(data_df):
     # record = pd.DataFrame(columns=title, data=lst)
     # record.to_csv(EXPORT_PATH / "record.csv")
 
-
     topic_model.set_topic_labels(custom_dict)
 
-
-    # 各 Topic TF-IDF 關鍵字直方圖
     bar_fig = topic_model.visualize_barchart(
         top_n_topics=50,
         width=400,
@@ -125,15 +135,14 @@ def main(data_df):
     )
 
     # 儲存成 html 檔案，供前端展示使用
-    bar_fig.write_html(f"{XML_PATH}/bar_fig.html")
-    topic_fig.write_html(f"{XML_PATH}/topic_fig.html")
-    tot_fig.write_html(f"{XML_PATH}/tot_fig.html")
-
+    bar_fig.write_html("./pea-sys/public/bar_fig.html")
+    topic_fig.write_html("./pea-sys/public/topic_fig.html")
+    tot_fig.write_html("./pea-sys/public/tot_fig.html")
 
 
 if __name__ == '__main__':
+    
     parser = ArgumentParser()
-
 
     parser.add_argument('--data',
                         default= XML_PATH + "/103-110_full.xlsx",
