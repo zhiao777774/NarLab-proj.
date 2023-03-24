@@ -9,6 +9,9 @@ from utils import import_lib, ROOT_PATH
 
 preproc_module = import_lib('preprocessing', 'preprocessing', ROOT_PATH / 'preprocessing.py')
 # tfidf_module = import_lib('tfidf', 'tfidf.keyword', ROOT_PATH / 'tfidf/keyword.py')
+# cl_module = import_lib('classification', 'classification.main', ROOT_PATH / 'classification/main.py')
+# bertopic_module = import_lib('sup_bertopic', 'helloBERTopic.supervised', ROOT_PATH / 'helloBERTopic/supervised.py')
+# wordcloud_module = import_lib('wordcloud', 'wordcloud.word_cloud', ROOT_PATH / 'wordcloud/word_cloud.py')
 
 app = FastAPI()
 app.add_middleware(
@@ -67,7 +70,7 @@ def get_category_prob(req: QueryRequestModel, request: Request):
     return {d['code']: d for d in res}
 
 
-@app.post('/preprocess')
+@app.post('/api/preprocess')
 def preprocess(req: ActionRequestModel):
     return preproc_module.combine(pd.DataFrame.from_dict(req.data))
 
@@ -84,7 +87,8 @@ def store(req: ActionRequestModel, request: Request):
             res.append(d_cat)
         old_df = pd.DataFrame(res)
         old_df = preproc_module.preprocess(old_df)
-        combined_df = pd.concat([old_df, pd.DataFrame.from_dict(req_data)])
+        new_df = pd.DataFrame.from_dict(req_data)
+        combined_df = pd.concat([old_df, new_df])
         combined_data = preproc_module.combine(combined_df)
 
         db_conn.insert('dataset', req_data)
@@ -95,7 +99,15 @@ def store(req: ActionRequestModel, request: Request):
         ]
         db_conn.insert('dataset_combine', saved)
 
-        # TODO: execute tfidf, classification, BERTopic, etc.
+        # TODO: run tfidf, classification, BERTopic, etc.
+        # try:
+        #     tfidf_result = tfidf_module.main(combined_df)
+        #     cl_result = cl_module.main(new_df)
+        #     wordcloud_module.main(combined_df, tfidf_result)
+        #     bertopic_module.main(combined_df)
+        # except:
+        #     logging.exception('POST /api/store -> Error occurred during run analysis')
+
         return {'ok': True, 'result': combined_data}
     else:
         # PATCH: modify an existing data
