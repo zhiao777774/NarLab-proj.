@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {gantt} from 'dhtmlx-gantt';
 import {Tooltip} from './Tooltip';
+import departmentRegularization from '../constants/department';
 import {DatasetContext} from '../helpers/contexts';
 import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
 
@@ -47,7 +48,10 @@ export default class GanttChart extends Component {
                     if (task.$open) return `<div class="${className} gantt-expanded"><span>` + task.text + '</span></div>';
                     return `<div class="${className} gantt-collapsed"><span>` + task.text + '</span></div>';
                 }
-                return `<div class="${className}"><span>` + task.text + '</span></div>';
+                const department = task.data.department || task.data[0].data.department;
+                const regularization = departmentRegularization[department];
+                const prefix = regularization ? `(${regularization.short}) ` : '';
+                return `<div class="${className}"><span>` + prefix + task.text + '</span></div>';
             };
         });
 
@@ -63,10 +67,12 @@ export default class GanttChart extends Component {
                     if (!hasChildren) {
                         const children = this.context.filter(({level}) => level !== 1)
                             .filter((project) => {
-                                if (project.level === 2)
-                                    return project.data[0].data.category[0] === categoryItem.name;
-                                else
-                                    return project.data.category[0] === categoryItem.name;
+                                if (project.level === 2) {
+                                    // 只要有包含到該類別就算
+                                    return project.data.some((p) => p.data.category.includes(categoryItem.name));
+                                } else {
+                                    return project.data.category.includes(categoryItem.name);
+                                }
                             });
                         children.map((t) => {
                             if (t.level === 2) {
