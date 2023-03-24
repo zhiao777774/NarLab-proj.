@@ -9,7 +9,7 @@ const advanceFormCMPT = [
 const conditionTypeMap = {
     '計畫名稱': 'name',
     //'計畫年份': 'startDate',
-    //'部會': 'department',
+    //'部會': 'department.ts',
     '計畫類別': 'category',
     '關鍵字': 'keyword',
     '計畫描述': 'description',

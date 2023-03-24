@@ -1,4 +1,5 @@
 import {AutocompleteResourceItem} from '../components/Autocomplete';
+import {API_URL} from '../constants/api';
 import category from '../constants/category';
 import {AutocompleteSearchSource, Project, Task} from '../constants/types';
 import {numberRange} from './range';
@@ -10,7 +11,7 @@ export async function loadData(condition: Array<any> | null = null): Promise<Tas
     const tasks: Task[] = [];
     const [projectData, catSeries, catProb, tfIdf] = await Promise.all(
         ['/dataset', '/category/stat', '/category/prob', '/tfidf']
-            .map(url => fetch('/api' + url, {
+            .map(url => fetch(API_URL + url, {
                 method: 'POST',
                 headers: {
                     'Access-Control-Allow-Origin': '*',
@@ -21,8 +22,8 @@ export async function loadData(condition: Array<any> | null = null): Promise<Tas
             }).then(res => res.json()))
     );
 
-    const yearRange = numberRange(103, 110, true);
     for (let i = 0; i < category.length; ++i) {
+        const yearRange = numberRange(103, 110, true);
         const start = new Date(103, 0, 1).toCE();
         const end = new Date(110, 0, 1).toCE();
 
@@ -48,6 +49,7 @@ export async function loadData(condition: Array<any> | null = null): Promise<Tas
         tasks.push(categoryProject);
     }
 
+    let haveUncategorized = false;
     Object.keys(projectData).forEach((projectName, j) => {
         const project = {
             name: projectName,
@@ -67,8 +69,16 @@ export async function loadData(condition: Array<any> | null = null): Promise<Tas
             const end = new Date(proj.endDate, 0, 1).toCE();
 
             // TODO: 目前多標籤只取第一個，可能要做修改
-            const catIndex = category.indexOf(proj.category.split(';')[0]);
+            catProb[proj.code]['category'].split(';').forEach((cat: string) => {
+
+            });
+            const catIndex = category.indexOf(
+                catProb[proj.code] ?
+                    catProb[proj.code]['category'].split(';')[0]
+                    : ''
+            );
             const parent = `main_${catIndex}`;
+            if (catIndex < 0) haveUncategorized = true;
 
             if (!i) {
                 project['project'] = parent;
@@ -104,7 +114,11 @@ export async function loadData(condition: Array<any> | null = null): Promise<Tas
                     // 目前只取前三高的類別與機率
                     category: catProb[proj.code] && catProb[proj.code]['predictCategoryTop5'].slice(0, 3),
                     categoryProb: catProb[proj.code] && catProb[proj.code]['predictProbabilityTop5'].slice(0, 3)
-                        .map((prob: string) => Number(prob))
+                        .map((prob: string) => Number(prob)),
+                    OKR: proj.OKR && String(proj.OKR).trim().replaceAll('_x000D_', '\n'),
+                    KPI: proj.KPI && String(proj.KPI).trim().replaceAll('_x000D_', '\n'),
+                    quotaCategory: proj.quotaCategory ? String(proj.quotaCategory).replace(',', '').trim() : '',
+                    implementer: String(proj.implementer).trim()
                 }
             } as Task;
 
@@ -116,6 +130,33 @@ export async function loadData(condition: Array<any> | null = null): Promise<Tas
             project.data.forEach((t: Task) => tasks.push(t));
         }
     });
+
+    if (haveUncategorized) {
+        const yearRange = numberRange(103, 110, true);
+        const start = new Date(103, 0, 1).toCE();
+        const end = new Date(110, 0, 1).toCE();
+
+        const categoryProject = {
+            start,
+            end,
+            start_date: `${start.getFullYear()}-1-1`,
+            duration: end.diffYear(start),
+            name: '未分類',
+            text: '未分類',
+            id: 'main_-1',
+            level: 1,
+            type: 'project',
+            progress: 1,
+            color: PROJECT_COLOR,
+            data: {
+                years: [],
+                series: []
+            },
+            isOpen: false
+        } as Project;
+
+        tasks.push(categoryProject);
+    }
 
     return filterBy(tasks, condition);
 }
@@ -151,6 +192,14 @@ export function filterBy(tasks: Task[], condition: Array<any> | null = null) {
             const tempDS = tempTasks.filter((task) => {
                 if (task.type === 'project') return true;
 
+                if (task.level === 2) {
+                    return task.data.some((subTask: Task) => {
+                        //@ts-ignore
+                        const target = subTask[type] || subTask.data[type];
+                        return target.includes(text);
+                    });
+                }
+
                 //@ts-ignore
                 const target = task[type] || task.data[type];
                 return target.includes(text);
@@ -164,6 +213,14 @@ export function filterBy(tasks: Task[], condition: Array<any> | null = null) {
         .forEach(({text, type, operator}) => {
             datasets = datasets.filter((task) => {
                 if (task.type === 'project') return true;
+
+                if (task.level === 2) {
+                    return task.data.some((subTask: Task) => {
+                        //@ts-ignore
+                        const target = subTask[type] || subTask.data[type];
+                        return target.includes(text);
+                    });
+                }
 
                 //@ts-ignore
                 let target = task.data[type];
@@ -217,7 +274,7 @@ export function filterBy(tasks: Task[], condition: Array<any> | null = null) {
 export async function loadDataByCategory(cat: string): Promise<Task[]> {
     const [projectData, catProb, tfIdf] = await Promise.all(
         ['/dataset', '/category/prob', '/tfidf']
-            .map(url => fetch('/api' + url, {
+            .map(url => fetch(API_URL + url, {
                 method: 'POST',
                 headers: {
                     'Access-Control-Allow-Origin': '*',
@@ -284,7 +341,11 @@ export async function loadDataByCategory(cat: string): Promise<Task[]> {
                     // 目前只取前三高的類別與機率
                     category: catProb[proj.code] && catProb[proj.code]['predictCategoryTop5'].slice(0, 3),
                     categoryProb: catProb[proj.code] && catProb[proj.code]['predictProbabilityTop5'].slice(0, 3)
-                        .map((prob: string) => Number(prob))
+                        .map((prob: string) => Number(prob)),
+                    OKR: proj.OKR && String(proj.OKR).trim().replaceAll('_x000D_', '\n'),
+                    KPI: proj.KPI && String(proj.KPI).trim().replaceAll('_x000D_', '\n'),
+                    quotaCategory: proj.quotaCategory ? String(proj.quotaCategory).replace(',', '').trim() : '',
+                    implementer: proj.implementer
                 }
             } as Task;
 
@@ -304,7 +365,7 @@ export async function loadDataByCategory(cat: string): Promise<Task[]> {
 export async function loadKeywords(searchSelected: AutocompleteSearchSource): Promise<AutocompleteResourceItem[]> {
     const [projectData, catProb] = await Promise.all(
         ['/dataset', '/category/prob']
-            .map((url, i) => fetch('/api' + url, {
+            .map((url, i) => fetch(API_URL + url, {
                 method: 'POST',
                 headers: {
                     'Access-Control-Allow-Origin': '*',
@@ -347,7 +408,7 @@ export async function loadKeywords(searchSelected: AutocompleteSearchSource): Pr
 }
 
 export async function getDepartments() {
-    const res = await fetch('/api/dataset', {
+    const res = await fetch(API_URL + '/dataset', {
         method: 'POST',
         headers: {
             'Access-Control-Allow-Origin': '*',
