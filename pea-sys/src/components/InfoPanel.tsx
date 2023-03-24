@@ -37,10 +37,25 @@ export const InfoPanel: React.FC<{ task: Task; setCurTask: Function; }> = ({task
             <Col xs={7}>
                 <h5>年度 </h5> <p>{target.start.toRepublicYear().getFullYear()}</p>
                 <h5>部會 </h5> <p>{target.data.department}</p>
+                {
+                    target.data.implementer ?
+                        <><h5>預定執行機關 </h5><p>{target.data.implementer}</p></>
+                        : null
+                }
+                {
+                    target.data.quotaCategory ?
+                        <><h5>額度類別 </h5><p>{target.data.quotaCategory}</p></>
+                    : null
+                }
                 <h5>計畫描述</h5>
                 <div className={styles.infoPanelDesp}>
                     <p>{target.data.description}</p>
                 </div>
+                {
+                    target.data.OKR ?
+                        <><h5>OKR </h5><p>{target.data.OKR}</p></>
+                        : null
+                }
             </Col>
             <Col>
                 {
