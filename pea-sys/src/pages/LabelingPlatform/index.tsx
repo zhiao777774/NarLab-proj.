@@ -6,6 +6,7 @@ import {CSVLink} from 'react-csv';
 import * as XLSX from 'xlsx';
 import DataTable from '../../components/DataTable';
 import {loadData} from '../../utils/dataLoader';
+import {API_URL} from '../../constants/api';
 import {Task} from '../../constants/types';
 
 export default function LabelingPlatform() {
@@ -51,6 +52,7 @@ export default function LabelingPlatform() {
                 '計畫完整中文名稱': project.name,
                 '年度': project.start.toRepublicYear().getFullYear(),
                 '部會': project.data.department,
+                '額度類別': project.data.quotaCategory,
                 '類別': project.data.category.join(';'),
                 '中文關鍵字': project.data.keyword,
                 'TF-IDF': project.data.tfidf.CH.join(';'),
@@ -80,7 +82,7 @@ export default function LabelingPlatform() {
             jsonData = XLSX.utils.sheet_to_json(worksheet);
         }
 
-        const res = await fetch('/api/preprocess', {
+        const res = await fetch(API_URL + '/preprocess', {
             method: 'POST',
             headers: {
                 'Access-Control-Allow-Origin': '*',
@@ -100,7 +102,7 @@ export default function LabelingPlatform() {
                 level: 3,
                 type: 'task',
                 data: {
-                    category: category.split(';'),
+                    category: category ? category.split(';') : [],
                     ...data,
                     keyword: chineseKeyword,
                     tfidf: {
@@ -134,7 +136,7 @@ export default function LabelingPlatform() {
                     ...reservedData,
                 };
             });
-        const res = await fetch('/api/store', {
+        const res = await fetch(API_URL + '/store', {
             method: isRevision ? 'PATCH' : 'POST',
             headers: {
                 'Access-Control-Allow-Origin': '*',
