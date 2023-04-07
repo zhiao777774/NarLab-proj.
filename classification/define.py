@@ -1,10 +1,12 @@
 import pandas as pd
 import sys 
-sys.path.append("..") 
+import os
+sys.path.append(os.getcwd()) 
 from preprocessing import feature_mapping
-
+os.environ['CUDA_LAUNCH_BLOCKING']='1'
 def get_data(file):
     df=pd.read_excel(file)
+    df=feature_mapping(df)
     key_words=df['chineseKeyword']
     sumary=df['description']
     year=df['startDate']
@@ -91,8 +93,8 @@ def output_file(fo,model,list,num_dic,y):
         fo.write(f"{num_dic[x_test[e]]},{text},{';'.join(true)},{';'.join(predicted)},{';'.join(prob)},{';'.join(pred5)},{';'.join(raw5)}\n")
     return pred_list,y_test,predictions,raw_outputs
 
-def get_text(file):
-    df=pd.read_excel(file)
+def get_text(df):
+    
     df=feature_mapping(df)
     key_words=df['chineseKeyword']
     sumary=df['description']
@@ -117,6 +119,7 @@ def output_pred(file,x_test,dic,y,model=None):
     
     predictions, raw_outputs = model.predict(x_test)
     pred_list=[]
+    pred_res=[]
     for e,i in enumerate(predictions):
         prob=[str(raw_outputs[e][k].round(3)) for k, l in enumerate(i) if l==1]
         predicted=[y[k] for k, l in enumerate(i) if l==1]
@@ -131,3 +134,13 @@ def output_pred(file,x_test,dic,y,model=None):
         pred5=[k for k in d][:5]
         raw5=[str(d[k].round(3)) for k in d][:5]
         fo.write(f"{dic[x_test[e]]},{text},{';'.join(predicted)},{';'.join(prob)},{';'.join(pred5)},{';'.join(raw5)}\n")
+
+        pred_res.append({        
+            'code': dic[x_test[e]],
+            'name': text,
+            'category': '',
+            'predictCategoryTop5': pred5,
+            'predictProbabilityTop5': raw5
+        })
+
+    return pred_res
