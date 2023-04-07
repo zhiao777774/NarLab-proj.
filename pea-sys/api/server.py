@@ -1,3 +1,5 @@
+import os
+import logging
 import pandas as pd
 import uvicorn
 from fastapi import FastAPI, Request
@@ -7,11 +9,13 @@ from database import MongoDB
 from data_type import ActionRequestModel, QueryRequestModel, DatasetRequestModel
 from utils import import_lib, ROOT_PATH
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+
 preproc_module = import_lib('preprocessing', 'preprocessing', ROOT_PATH / 'preprocessing.py')
-# tfidf_module = import_lib('tfidf', 'tfidf.keyword', ROOT_PATH / 'tfidf/keyword.py')
-# cl_module = import_lib('classification', 'classification.main', ROOT_PATH / 'classification/main.py')
-# bertopic_module = import_lib('sup_bertopic', 'helloBERTopic.supervised', ROOT_PATH / 'helloBERTopic/supervised.py')
-# wordcloud_module = import_lib('wordcloud', 'wordcloud.word_cloud', ROOT_PATH / 'wordcloud/word_cloud.py')
+tfidf_module = import_lib('tfidf', 'tfidf.keyword', ROOT_PATH / 'tfidf/keyword.py')
+cl_module = import_lib('classification', 'classification.main', ROOT_PATH / 'classification/main.py')
+bertopic_module = import_lib('sup_bertopic', 'helloBERTopic.supervised', ROOT_PATH / 'helloBERTopic/supervised.py')
+wordcloud_module = import_lib('wordcloud', 'wordcloud.word_cloud', ROOT_PATH / 'wordcloud/word_cloud.py')
 
 app = FastAPI()
 app.add_middleware(
@@ -41,13 +45,22 @@ def get_dataset(req: DatasetRequestModel, request: Request):
     cond = req.condition if request.method.upper() == 'POST' else {}
     load_combined = req.combined
     if load_combined:
-        res = db_conn.find('dataset_combine', cond)
-        return {d['project']: d['data'] for d in res}
+        result = db_conn.find('dataset_combine', cond)
+        res = {}
+        for project in result:
+            data = []
+            for d in project['data']:
+                d['_id'] = str(d['_id'])
+                data.append(d)
+
+            res[project['project']] = data
+        return res
+        #return {d['project']: d['data'] for d in result}
     else:
         res = []
-        for d_tfidf in db_conn.find('dataset', cond):
-            d_tfidf['_id'] = str(d_tfidf['_id'])
-            res.append(d_tfidf)
+        for d in db_conn.find('dataset', cond):
+            d['_id'] = str(d['_id'])
+            res.append(d)
         return res
 
 
@@ -82,9 +95,9 @@ def store(req: ActionRequestModel, request: Request):
     if request.method.upper() == 'POST':
         # POST: add new data
         res = []
-        for d_cat in db_conn.find('dataset', {}):
-            d_cat['_id'] = str(d_cat['_id'])
-            res.append(d_cat)
+        for d in db_conn.find('dataset', {}):
+            d['_id'] = str(d['_id'])
+            res.append(d)
         old_df = pd.DataFrame(res)
         old_df = preproc_module.preprocess(old_df)
         new_df = pd.DataFrame.from_dict(req_data)
@@ -99,14 +112,47 @@ def store(req: ActionRequestModel, request: Request):
         ]
         db_conn.insert('dataset_combine', saved)
 
-        # TODO: run tfidf, classification, BERTopic, etc.
-        # try:
-        #     tfidf_result = tfidf_module.main(combined_df)
-        #     cl_result = cl_module.main(new_df)
-        #     wordcloud_module.main(combined_df, tfidf_result)
-        #     bertopic_module.main(combined_df)
-        # except:
-        #     logging.exception('POST /api/store -> Error occurred during run analysis')
+        #TODO: run tfidf, classification, BERTopic, etc.
+        try:
+            print('start classification')
+            cl_result = cl_module.main(new_df, '/home/ncku112/nar/NarLab-proj./classification/model_bert-base-chinese_20', '/home/ncku112/nar/NarLab-proj./data/folder_nar/category_probability.csv')
+            cl_ins_res = db_conn.insert('category_prob', cl_result)
+            print('insert classification data successfully: ', cl_ins_res.inserted_ids)
+            print('classification done')
+
+            print('start tf-idf')
+            tfidf_result = tfidf_module.main(combined_df)
+            tfidf_ins_res = db_conn.insert('tfidf', tfidf_result)
+            print('insert tfidf data successfully: ', tfidf_ins_res.inserted_ids)
+            print('tf-idf done')
+         
+            print('start wordcloud')
+            wordcloud_module.main(combined_df, tfidf_result, '/home/ncku112/nar/NarLab-proj./pea-sys/src/data/wordcloud/')
+            print('wordcloud done')
+
+            # print('start BERTopic')
+            # bertopic_module.main(combined_df)
+            # print('BERTopic done')
+
+            print('start category statistic')
+            db_conn['category_stat'].delete_many({})
+            for new_data in req_data:
+                cl = next(item for item in cl_result if item['code'] == new_data['code'])
+                cat = cl['predictCategoryTop5'][0]
+                cat_data = db_conn.find('category_stat', {'name': cat})
+                
+                update = cat_data.copy()
+                year = int(new_data['startDate'])
+                if year in update['data']:
+                    update['data'][year] += 1
+                else:
+                    update['data'][year] = 1
+
+                db_conn.update('category_stat', {'name': cat}, {'$set': {'data': update['data']}})
+
+            print('category statistic done')
+        except:
+             logging.exception('POST /api/store -> Error occurred during run analysis')
 
         return {'ok': True, 'result': combined_data}
     else:
