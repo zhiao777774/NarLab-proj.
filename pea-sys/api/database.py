@@ -1,6 +1,7 @@
 import pymongo
 from typing import Union
-
+import pandas as pd
+import utils
 
 class MongoDB:
     def __init__(self):
@@ -25,14 +26,24 @@ class MongoDB:
             return self.db[col_name].insert_one(data)
         return self.db[col_name].insert_many(data)
 
-    def update(self, col_name: str, condition: dict, updated: Union[dict, list]):
-        if isinstance(updated, dict):
+    def update(self, col_name: str, condition: dict, updated: Union[dict, list], many: bool = False):
+        if not many:
             return self.db[col_name].update_one(condition, updated)
         return self.db[col_name].update_many(condition, updated)
 
 
 if __name__ == '__main__':
-    db_connection = MongoDB()
-    db_connection.connect('nar')
-    print(db_connection.db.list_collection_names())
-    db_connection.close()
+    db_conn = MongoDB()
+    db_conn.connect('nar')
+    print(db_conn.db.list_collection_names())
+
+    # data = db_conn.find('dataset', {})
+    # combined_data = utils.combine(pd.DataFrame.from_dict(data))
+    # db_conn['dataset_combine'].delete_many({})
+    # saved = [
+    #         {'project': project, 'data': combined_data[project]}
+    #         for project in combined_data
+    #     ]
+    # db_conn.insert('dataset_combine', saved)
+
+    db_conn.close()
