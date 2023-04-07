@@ -53,10 +53,10 @@ export default function LabelingPlatform() {
                 '年度': project.start.toRepublicYear().getFullYear(),
                 '部會': project.data.department,
                 '額度類別': project.data.quotaCategory,
-                '類別': project.data.category.join(';'),
+                '類別': project.data.category ? project.data.category.join(';') : '',
                 '中文關鍵字': project.data.keyword,
-                'TF-IDF': project.data.tfidf.CH.join(';'),
-                '英文斷詞': project.data.tfidf.EN.join(';'),
+                'TF-IDF': project.data.tfidf && project.data.tfidf.CH ? project.data.tfidf.CH.join(';') : '',
+                '英文斷詞': project.data.tfidf && project.data.tfidf.EN ? project.data.tfidf.EN.join(';') : '',
                 '計畫重點描述': project.data.description
             };
         });
@@ -98,7 +98,8 @@ export default function LabelingPlatform() {
             return {
                 id: code,
                 name,
-                start: new Date(Number(startDate) + 1911, 0, 0),
+                start: new Date(Number(startDate) + 1911, 0),
+                start_date: String(startDate),
                 level: 3,
                 type: 'task',
                 data: {
@@ -125,12 +126,12 @@ export default function LabelingPlatform() {
                 };
             })
             : data.map((project: Task) => {
-                const {id, name, start, data} = project;
+                const {id, name, start, start_date, data} = project;
                 const {tfidf, category, keyword, ...reservedData} = data;
                 return {
                     code: id,
                     name,
-                    startDate: start.toRepublicYear().getFullYear(),
+                    startDate: start_date ? Number(start_date) : start.toRepublicYear().getFullYear(),
                     chineseKeyword: keyword,
                     category: category[0],
                     ...reservedData,
@@ -157,7 +158,7 @@ export default function LabelingPlatform() {
                         return {
                             id: code,
                             name,
-                            start: new Date(Number(startDate) + 1911, 0, 0),
+                            start: new Date(Number(startDate) + 1911, 0),
                             level: 3,
                             type: 'task',
                             data: {
