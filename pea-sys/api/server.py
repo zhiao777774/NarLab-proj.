@@ -135,20 +135,51 @@ def store(req: ActionRequestModel, request: Request):
             # print('BERTopic done')
 
             print('start category statistic')
-            db_conn['category_stat'].delete_many({})
-            for new_data in req_data:
-                cl = next(item for item in cl_result if item['code'] == new_data['code'])
-                cat = cl['predictCategoryTop5'][0]
-                cat_data = db_conn.find('category_stat', {'name': cat})
-                
-                update = cat_data.copy()
-                year = int(new_data['startDate'])
-                if year in update['data']:
-                    update['data'][year] += 1
-                else:
-                    update['data'][year] = 1
 
-                db_conn.update('category_stat', {'name': cat}, {'$set': {'data': update['data']}})
+            db_conn['category_stat'].delete_many({})
+            df = db_conn.find('dataset', {})
+            cat_df = db_conn.find('category_prob', {})
+            categories = list(set([d['predictCategoryTop5'][0] for d in cat_df]))
+            years = list(set([d['startDate'] for d in df]))
+            cat_year_map = {cat: {str(y): 0 for y in years} for cat in categories}
+            for data in df:
+                code = data['code']
+                cat_data_idx = next((index for (index, d) in enumerate(cat_df) if d["code"] == code), None)
+                cat = cat_df[cat_data_idx]['predictCategoryTop5'][0]
+                year = data['startDate']
+                cat_year_map[cat][str(year)] += 1
+
+            res = []
+            for cat, year_map in cat_year_map.items():
+                res.append({
+                    'name': cat,
+                    'data': year_map
+                })
+
+            cp = res[0]['data'].copy()
+            for c in cp:
+                cp[c] = 0
+                
+            res.append({
+                'name': '虛擬實境',
+                'data': cp
+            })
+            db_conn.insert('category_stat', res)
+            
+            # db_conn['category_stat'].delete_many({})
+            # for new_data in req_data:
+            #     cl = next(item for item in cl_result if item['code'] == new_data['code'])
+            #     cat = cl['predictCategoryTop5'][0]
+            #     cat_data = db_conn.find('category_stat', {'name': cat})
+                
+            #     update = cat_data.copy()
+            #     year = int(new_data['startDate'])
+            #     if year in update['data']:
+            #         update['data'][year] += 1
+            #     else:
+            #         update['data'][year] = 1
+
+            #     db_conn.update('category_stat', {'name': cat}, {'$set': {'data': update['data']}})
 
             print('category statistic done')
         except:
