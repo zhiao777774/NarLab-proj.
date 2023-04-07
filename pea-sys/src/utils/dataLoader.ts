@@ -69,12 +69,10 @@ export async function loadData(condition: Array<any> | null = null): Promise<Tas
             const end = new Date(proj.endDate, 0, 1).toCE();
 
             // TODO: 目前多標籤只取第一個，可能要做修改
-            catProb[proj.code]['category'].split(';').forEach((cat: string) => {
-
-            });
             const catIndex = category.indexOf(
                 catProb[proj.code] ?
-                    catProb[proj.code]['category'].split(';')[0]
+                    // catProb[proj.code]['category'].split(';')[0]
+                    catProb[proj.code]['predictCategoryTop5'][0]
                     : ''
             );
             const parent = `main_${catIndex}`;
