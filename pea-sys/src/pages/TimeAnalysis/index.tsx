@@ -3,7 +3,7 @@ import Chart from 'react-apexcharts';
 import {loadData} from '../../utils/dataLoader';
 
 export default function TimeAnalysis() {
-    const chartConfig = {
+    const defaultChartConfig = {
         chart: {
             animations: {
                 enabled: false
@@ -15,7 +15,7 @@ export default function TimeAnalysis() {
             }
         },
         xaxis: {
-            categories: [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]
+            categories: ['103']
         },
         title: {
             text: '計畫類別各年份數量統計',
@@ -33,6 +33,7 @@ export default function TimeAnalysis() {
         }
     };
 
+    const [chartConfig, setChartConfig] = useState<object>(defaultChartConfig);
     const [countData, setCountData] = useState<object[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -47,6 +48,9 @@ export default function TimeAnalysis() {
                     data: proj.data.series
                 };
             }));
+            const chartConfig = {...defaultChartConfig};
+            chartConfig.xaxis.categories = projectTasks[0].data.years;
+            setChartConfig(chartConfig);
             setLoading(false);
         }
         initData();
