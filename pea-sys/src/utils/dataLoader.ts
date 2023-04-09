@@ -22,11 +22,14 @@ export async function loadData(condition: Array<any> | null = null): Promise<Tas
             }).then(res => res.json()))
     );
 
-    for (let i = 0; i < category.length; ++i) {
-        const yearRange = numberRange(103, 110, true);
-        const start = new Date(103, 0, 1).toCE();
-        const end = new Date(110, 0, 1).toCE();
+    const years = Object.keys(catSeries[category[0]]).map(Number);
+    const minYear = Number(Math.min(...years));
+    const maxYear = Number(Math.max(...years));
+    const yearRange = numberRange(minYear, maxYear, true);
+    const start = new Date(minYear, 0, 1).toCE();
+    const end = new Date(maxYear, 0, 1).toCE();
 
+    for (let i = 0; i < category.length; ++i) {
         const categoryProject = {
             start,
             end,
@@ -130,10 +133,6 @@ export async function loadData(condition: Array<any> | null = null): Promise<Tas
     });
 
     if (haveUncategorized) {
-        const yearRange = numberRange(103, 110, true);
-        const start = new Date(103, 0, 1).toCE();
-        const end = new Date(110, 0, 1).toCE();
-
         const categoryProject = {
             start,
             end,
