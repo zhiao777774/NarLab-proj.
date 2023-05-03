@@ -6,7 +6,7 @@ from pathlib import Path
 from ckiptagger import data_utils
 from termcolor import colored
 
-DATA_PATH = Path(__file__).parent / "data"
+DATA_PATH = '~/nar/NarLab-proj./helloBERTopic/data'
 EXPORT_PATH = (Path(__file__).parent / "export")
 
 def set_seed(seed: int) -> None:
@@ -37,7 +37,7 @@ def ckip_check():
     check = True
     
     for i in check_list:
-        data_exists = (DATA_PATH / i).exists()
+        data_exists = (DATA_PATH + i).exists()
         print(
             colored(data_exists, 'blue') if data_exists else colored(data_exists, 'red'), 
             i
