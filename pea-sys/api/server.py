@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import pandas as pd
 import uvicorn
@@ -10,6 +11,7 @@ from data_type import ActionRequestModel, QueryRequestModel, DatasetRequestModel
 from utils import import_lib, ROOT_PATH
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+sys.path.append('/home/ncku112/nar/NarLab-proj.')
 
 preproc_module = import_lib('preprocessing', 'preprocessing', ROOT_PATH / 'preprocessing.py')
 tfidf_module = import_lib('tfidf', 'tfidf.keyword', ROOT_PATH / 'tfidf/keyword.py')
