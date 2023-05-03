@@ -114,45 +114,58 @@ def store(req: ActionRequestModel, request: Request):
         ]
         db_conn.insert('dataset_combine', saved)
 
+        #TODO: run tfidf, classification, BERTopic, etc.
         try:
-            # NOTE: Classification (depends on dataset (only new data))
             print('start classification')
             cl_result = cl_module.main(new_df, '/home/ncku112/nar/NarLab-proj./classification/model_bert-base-chinese_20', '/home/ncku112/nar/NarLab-proj./data/folder_nar/category_probability.csv')
             cl_ins_res = db_conn.insert('category_prob', cl_result)
             print('insert classification data successfully: ', cl_ins_res.inserted_ids)
             print('classification done')
 
-            # NOTE: Category statistic (depends on Classification and dataset)
+            print('start tf-idf')
+            tfidf_result = tfidf_module.main(combined_df)
+            tfidf_ins_res = db_conn.insert('tfidf', tfidf_result)
+            print('insert tfidf data successfully: ', tfidf_ins_res.inserted_ids)
+            print('tf-idf done')
+         
+            print('start wordcloud')
+            wordcloud_module.main(combined_df, tfidf_result, '/home/ncku112/nar/NarLab-proj./pea-sys/src/data/wordcloud/')
+            print('wordcloud done')
+
+            # print('start BERTopic')
+            # bertopic_module.main(combined_df)
+            # print('BERTopic done')
+
             print('start category statistic')
+
             db_conn['category_stat'].delete_many({})
             df = db_conn.find('dataset', {})
             cat_df = db_conn.find('category_prob', {})
             categories = list(set([d['predictCategoryTop5'][0] for d in cat_df]))
             years = list(set([d['startDate'] for d in df]))
-            cat_year_mapping = {cat: {str(y): 0 for y in years} for cat in categories}
+            cat_year_map = {cat: {str(y): 0 for y in years} for cat in categories}
             for data in df:
                 code = data['code']
-                cat_data_idx = next((index for (index, d) in enumerate(cat_df) if d['code'] == code), None)
+                cat_data_idx = next((index for (index, d) in enumerate(cat_df) if d["code"] == code), None)
                 cat = cat_df[cat_data_idx]['predictCategoryTop5'][0]
                 year = data['startDate']
-                cat_year_mapping[cat][str(year)] += 1
+                cat_year_map[cat][str(year)] += 1
 
             res = []
-            for cat, year_map in cat_year_mapping.items():
+            for cat, year_map in cat_year_map.items():
                 res.append({
                     'name': cat,
                     'data': year_map
                 })
 
-            if len(res) != 50:
-                tmp = res[0]['data'].copy()
-                for year in tmp:
-                    tmp[year] = 0
-
-                res.append({
-                    'name': '虛擬實境',
-                    'data': tmp
-                })
+            cp = res[0]['data'].copy()
+            for c in cp:
+                cp[c] = 0
+                
+            res.append({
+                'name': '虛擬實境',
+                'data': cp
+            })
             db_conn.insert('category_stat', res)
             
             # db_conn['category_stat'].delete_many({})
@@ -172,31 +185,7 @@ def store(req: ActionRequestModel, request: Request):
 
             print('category statistic done')
         except:
-            logging.exception('POST /api/store -> Error occurred during run CATEGORY analysis')
-
-        try:
-            # NOTE: TF-IDF (depends on dataset)
-            print('start tf-idf')
-            tfidf_result = tfidf_module.main(combined_df)
-            tfidf_ins_res = db_conn.insert('tfidf', tfidf_result)
-            print('insert tfidf data successfully: ', tfidf_ins_res.inserted_ids)
-            print('tf-idf done')
-         
-            # NOTE: Wordcloud (depends on TF-IDF)
-            print('start wordcloud')
-            wordcloud_module.main(combined_df, tfidf_result, '/home/ncku112/nar/NarLab-proj./pea-sys/src/data/wordcloud/')
-            print('wordcloud done')
-        except:
-             logging.exception('POST /api/store -> Error occurred during run KEYWORD analysis')
-
-        # try:
-        #     # NOTE: BERTopic (depends on dataset)
-        #     print('start BERTopic')
-        #     bertopic_module.main(combined_df)
-        #     print('BERTopic done')
-        # except:
-        #     logging.exception('POST /api/store -> Error occurred during run BERTopic')
-
+             logging.exception('POST /api/store -> Error occurred during run analysis')
 
         return {'ok': True, 'result': combined_data}
     else:

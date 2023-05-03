@@ -4,7 +4,11 @@ import pandas as pd
 import pymongo
 
 OPERATION = {
+<<<<<<< HEAD
+    'DELETE': ('delete', 'del', 'd')
+=======
     'DELETE': ('delete', 'del', 'd'),
+>>>>>>> 0b0d84e8a69fa102a77f33202e4e64346889e59f
 }
 
 

@@ -1,7 +1,6 @@
 import sys, os
 import pandas as pd
 import time
-from halo import Halo
 from ckiptagger import WS, POS
 from sklearn.feature_extraction.text import TfidfVectorizer
 import re
@@ -33,8 +32,6 @@ def main(data):
     clean_seg = []
     
     # ch keywords
-    spinner = Halo(text='POS tagging', spinner='dots')    
-    spinner.start()
     start = time.time()
 
     for idx, row in data.iterrows():
@@ -54,13 +51,10 @@ def main(data):
                 clean_seg.append(tmp)
 
     end = time.time()
-    spinner.stop()
     print(f'pos tagging and tokenization: {end-start} s')
 
 
     # tfidf
-    spinner = Halo(text='TF-IDF computing', spinner='dots')    
-    spinner.start()
     start = time.time()
 
     vec = TfidfVectorizer(smooth_idf=True)
@@ -84,13 +78,10 @@ def main(data):
         keywords.append(tmp)
 
     end = time.time()
-    spinner.stop()
     print(f'tfidf: {end-start} s')
 
 
     # eng keywords
-    spinner = Halo(text='English keywords computing', spinner='dots')    
-    spinner.start()
     start = time.time()
 
     eng = re.compile(r'[0-9A-Za-z_&²/]+')
@@ -117,17 +108,14 @@ def main(data):
                 eng_keywords.append(final2)
 
     end = time.time()
-    spinner.stop()
     print(f'eng keywords: {end-start} s')
 
 
     # write json
     all = []
 
-    print(data.size)
     for idx, row in data.iterrows():
         if isNaN(row['code']) == False:
-            print(row['code'])
             d = dict()
             d['code'] = row['code']
             d['name'] = row['name']
