@@ -36,14 +36,4 @@ if __name__ == '__main__':
     db_conn = MongoDB()
     db_conn.connect('nar')
     print(db_conn.db.list_collection_names())
-
-    # data = db_conn.find('dataset', {})
-    # combined_data = utils.combine(pd.DataFrame.from_dict(data))
-    # db_conn['dataset_combine'].delete_many({})
-    # saved = [
-    #         {'project': project, 'data': combined_data[project]}
-    #         for project in combined_data
-    #     ]
-    # db_conn.insert('dataset_combine', saved)
-
     db_conn.close()
