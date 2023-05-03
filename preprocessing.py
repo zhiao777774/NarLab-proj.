@@ -1,7 +1,10 @@
+import sys
+import os
 import re
 import json
 import numpy as np
 
+sys.path.append(os.getcwd())
 import nar.util  # server 執行可能會import不到
 
 
@@ -44,7 +47,7 @@ def preprocess(df):
     df = feature_mapping(df)
     df = df.dropna(how='all')
     # df = df.astype({'startDate': int})
-    df = df[df.columns.drop(list(df.filter(regex='None')))]  # 這行在server執行會出錯
+    # df = df[df.columns.drop(list(df.filter(regex='None')))]  # 這行在server執行會出錯
     df['name'] = df['name'].str.replace(':', '：').replace('（', '(').replace('）', ')')
     df['name'] = df.apply(lambda x: re.sub(r'\s+', '', str(x['name'])), axis=1)
 
